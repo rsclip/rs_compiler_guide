@@ -9,6 +9,8 @@ pub mod token;
 
 pub mod frontend;
 
+use std::path::{Path, PathBuf};
+
 use gumdrop::Options;
 
 /// The main entry point for the program
@@ -39,7 +41,7 @@ pub struct Args {
     asm: bool,
 }
 
-fn compile(opts: Args) {
+fn compile(opts: Args) -> PathBuf {
     let options = frontend::CompilerOptions {
         verbose: true,
         print_tokens: opts.tokens,
@@ -51,15 +53,18 @@ fn compile(opts: Args) {
     let mut compiler = frontend::Compiler::new(options);
 
     compiler.add_file(opts.file.clone());
-    let out = opts.out.unwrap_or(frontend::compiler::default_output_file(&opts.file));
+    let out_str = opts.out.unwrap_or(frontend::compiler::default_output_file(&opts.file));
+    let out = Path::new(&out_str).to_path_buf();
 
     match compiler.compile(out.clone()) {
-        Ok(_) => println!("Compiled {} to {}", opts.file, out),
+        Ok(_) => println!("Compiled {} to {}", opts.file, out_str),
         Err(e) => {
             eprintln!("Error: {}", e);
             std::process::exit(1);
         }
-    }
+    };
+
+    out.clone()
 }
 
 fn main() {
@@ -73,9 +78,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn simple_tokens() {
-        let args = vec!["pyler", "./tests/simple_tokens.pyl", "--tokens"];
-        let opts = Args::parse_args_default(&args).unwrap();
+    fn simple_tokens_compile() {
+        let args = vec!["tests/simple_tokens.pyl", "--tokens"];
+        let opts = Args::parse_args_default(&args).expect("Failed to parse args");
+
+        compile(opts);
+    }
+
+    #[test]
+    fn add_compile() {
+        let args = vec!["tests/add.pyl", "--ast", "--ir", "--asm", "--tokens"];
+        let opts = Args::parse_args_default(&args).expect("Failed to parse args");
 
         compile(opts);
     }
