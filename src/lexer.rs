@@ -3,8 +3,8 @@
 
 use anyhow::{anyhow, Error, Result};
 
-use crate::token::{Span, Token, TokenKind};
 use crate::errors::LangError;
+use crate::token::{Span, Token, TokenKind};
 
 /// A lexer iterator.
 pub struct Lexer<'a> {
@@ -65,9 +65,8 @@ impl<'a> Lexer<'a> {
             } else if ch == '.' {
                 if has_decimal {
                     self.advance();
-                    let val = &self.src[start..self.pos];
-                    let span = Span { start, end: self.pos };
-                    
+                    let val = &self.src[self.pos - 1..self.pos];
+
                     // advance until whitespace
                     while let Some(ch) = self.peek() {
                         if ch.is_whitespace() {
@@ -77,12 +76,13 @@ impl<'a> Lexer<'a> {
                         }
                     }
 
-                    return Err(anyhow!(
-                        LangError::UnexpectedCharacter(
-                            val.to_string(),
-                            span
-                        )
-                    ));
+                    return Err(anyhow!(LangError::UnexpectedCharacter(
+                        val.to_string(),
+                        Span {
+                            start,
+                            end: self.pos
+                        }
+                    )));
                 } else {
                     has_decimal = true;
                     self.advance();
@@ -92,30 +92,26 @@ impl<'a> Lexer<'a> {
             }
         }
         let end = self.pos;
-        
+
         let value = &self.src[start..end];
         if value.is_empty() {
-            return Err(anyhow!(
-                LangError::ExpectedAnyToken {
-                    expected: vec![TokenKind::IntegerLiteral(0), TokenKind::FloatLiteral(0.0)],
-                    found: "Empty literal".to_string(),
-                    span: Span { start, end },
-                }
-            ));
+            return Err(anyhow!(LangError::ExpectedAnyToken {
+                expected: vec![TokenKind::IntegerLiteral(0), TokenKind::FloatLiteral(0.0)],
+                found: "Empty literal".to_string(),
+                span: Span { start, end },
+            }));
         }
-    
+
         if has_decimal {
             match value.parse() {
                 Ok(f) => Ok(Token {
                     kind: TokenKind::FloatLiteral(f),
                     span: Span { start, end },
                 }),
-                Err(_) => Err(anyhow!(
-                    LangError::InvalidLiteral(
-                        value.to_string(),
-                        Span { start, end }
-                    )
-                )),
+                Err(_) => Err(anyhow!(LangError::InvalidLiteral(
+                    value.to_string(),
+                    Span { start, end }
+                ))),
             }
         } else {
             match value.parse() {
@@ -123,16 +119,14 @@ impl<'a> Lexer<'a> {
                     kind: TokenKind::IntegerLiteral(i),
                     span: Span { start, end },
                 }),
-                Err(_) => Err(anyhow!(
-                    LangError::InvalidLiteral(
-                        value.to_string(),
-                        Span { start, end }
-                    )
-                )),
+                Err(_) => Err(anyhow!(LangError::InvalidLiteral(
+                    value.to_string(),
+                    Span { start, end }
+                ))),
             }
         }
     }
-    
+
     /// Lex an operator (may or may not be multi-char)
     /// Always advances the lexer past the operator
     fn lex_op(&mut self) -> Result<Token> {
@@ -145,13 +139,11 @@ impl<'a> Lexer<'a> {
                 '+' | '-' | '*' | '/' | '%' | '^' | '=' | '<' | '>' | '!' | '&' | '|' => {
                     self.advance();
                     end = self.pos;
-                },
+                }
                 _ => {}
             }
         } else {
-            return Err(anyhow!(
-                LangError::UnexpectedEOF(Span { start, end })
-            ));
+            return Err(anyhow!(LangError::UnexpectedEOF(Span { start, end })));
         }
 
         Ok(Token {
@@ -175,12 +167,10 @@ impl<'a> Lexer<'a> {
 
         let value = &self.src[start..end];
         if value.is_empty() {
-            return Err(anyhow!(
-                LangError::UnexpectedCharacter(
-                    value.to_string(),
-                    Span { start, end }
-                )
-            ));
+            return Err(anyhow!(LangError::UnexpectedCharacter(
+                value.to_string(),
+                Span { start, end }
+            )));
         }
 
         Ok(Token {
@@ -194,7 +184,10 @@ impl<'a> Lexer<'a> {
         let start = self.pos;
         self.advance();
         let end = self.pos;
-        Token { kind, span: Span { start, end } }
+        Token {
+            kind,
+            span: Span { start, end },
+        }
     }
 }
 
@@ -207,7 +200,9 @@ impl<'a> Iterator for Lexer<'a> {
 
         if let Some(ch) = self.peek() {
             let token = match ch {
-                '+' | '-' | '*' | '/' | '%' | '^' | '=' | '<' | '>' | '!' | '&' | '|' => self.lex_op(),
+                '+' | '-' | '*' | '/' | '%' | '^' | '=' | '<' | '>' | '!' | '&' | '|' => {
+                    self.lex_op()
+                }
                 '0'..='9' => self.lex_number(),
                 'a'..='z' | 'A'..='Z' | '_' => self.lex_word(),
                 '{' => Ok(self.lex_single_char(TokenKind::OpenBrace)),
@@ -222,16 +217,17 @@ impl<'a> Iterator for Lexer<'a> {
                     if ch.is_alphabetic() {
                         self.lex_word()
                     } else {
-                        Err(anyhow!(
-                            LangError::UnexpectedCharacter(
-                                ch.to_string(),
-                                Span { start: self.pos, end: self.pos + ch.len_utf8() }
-                            )
-                        ))
+                        Err(anyhow!(LangError::UnexpectedCharacter(
+                            ch.to_string(),
+                            Span {
+                                start: self.pos,
+                                end: self.pos + ch.len_utf8()
+                            }
+                        )))
                     }
                 }
             };
-            
+
             Some(token)
         } else {
             None
@@ -275,9 +271,9 @@ mod tests {
 
         let mut files = SimpleFiles::new();
         let file_id = files.add("test", src);
-        
+
         let (tokens, errors) = consume_lexer(lexer);
-        
+
         assert_eq!(tokens.len(), 8);
         assert_eq!(errors.len(), 1);
 
@@ -285,7 +281,9 @@ mod tests {
 
         // display anyhow errors
         for err in errors {
-            reporter.report(file_id, &err).expect("Failed to report error");
+            reporter
+                .report(file_id, &err)
+                .expect("Failed to report error");
         }
     }
 }
