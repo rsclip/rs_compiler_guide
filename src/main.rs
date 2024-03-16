@@ -2,10 +2,13 @@ extern crate anyhow;
 extern crate codespan_reporting;
 extern crate gumdrop;
 extern crate thiserror;
+extern crate chumsky;
 
 pub mod errors;
 pub mod lexer;
 pub mod token;
+pub mod parser;
+pub mod ast;
 
 pub mod frontend;
 

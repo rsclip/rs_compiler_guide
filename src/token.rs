@@ -71,7 +71,6 @@ pub enum TokenKind {
 
     // End of file
     Eof,
-    // Error
 }
 
 impl TokenKind {

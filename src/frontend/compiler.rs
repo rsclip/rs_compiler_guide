@@ -90,6 +90,12 @@ impl Compiler {
         Ok(())
     }
 
+    fn parse_tokens(&self, tokens: Vec<Token>) -> Result<()> {
+
+
+        Ok(())
+    }
+
     fn lex_file(&self, file_id: usize) -> Result<Vec<Token>> {
         let simple_file = self.files.get(file_id)?;
 

@@ -1,5 +1,7 @@
 //! Contains the error types used in the library while parsing and lexing.
 //! Used with `anyhow` to provide context to errors.
+//! 
+//! Should migrate to `ariadne` crate for better error handling and reporting.
 
 use crate::token::{Span, TokenKind};
 use codespan_reporting::diagnostic::{Diagnostic, Label};

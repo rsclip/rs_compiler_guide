@@ -1,0 +1,55 @@
+program           ::= item*
+
+item              ::= function_decl
+                    # | struct_decl
+                    # | enum_decl
+                    # | impl_block
+
+function_decl     ::= "fn" IDENTIFIER "(" [parameter_list] ")" "->" type block
+
+parameter_list    ::= parameter ("," parameter)*
+
+parameter         ::= IDENTIFIER ":" type
+
+type              ::= primitive_type
+                    # | user_defined_type
+                    # | tuple_type
+                    # | reference_type
+                    # | array_type
+                    # | function_type
+
+primitive_type    ::= "int" | "float" | "bool"
+
+user_defined_type ::= IDENTIFIER
+
+block             ::= "{" statement* "}"
+
+statement         ::= expression ";"
+                    | variable_decl
+                    | flow_statement
+
+
+expression        ::= primary_expression
+                    | unary_expression
+                    | binary_expression
+
+primary_expression ::= literal
+                    | IDENTIFIER
+                    | "(" expression ")"
+                    | function_call
+
+literal           ::= NUMBER | BOOLEAN
+
+unary_expression  ::= "-" expression | "!" expression #| "&" expression | "*" expression
+
+binary_expression ::= expression OPERATOR expression
+
+function_call     ::= IDENTIFIER "(" arguments ")"
+arguments         ::= expression ("," expression)* | ε
+
+variable_decl     ::= "let" IDENTIFIER ":" type "=" expression
+
+flow_statement    ::= "if" condition block ("else" block)?
+                    | "return" expression?
+
+condition         ::= expression
