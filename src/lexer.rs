@@ -270,14 +270,14 @@ mod tests {
         let lexer = Lexer::new(src);
 
         let mut files = SimpleFiles::new();
-        let file_id = files.add("test", src);
+        let file_id = files.add("test".to_string(), src.to_string());
 
         let (tokens, errors) = consume_lexer(lexer);
 
         assert_eq!(tokens.len(), 8);
         assert_eq!(errors.len(), 1);
 
-        let reporter = ErrorReporter::with_files(files);
+        let reporter = ErrorReporter::new(&mut files);
 
         // display anyhow errors
         for err in errors {

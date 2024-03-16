@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.81"
 codespan-reporting = "0.11.1"
+gumdrop = "0.8.1"
 thiserror = "1.0.58"

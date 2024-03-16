@@ -43,7 +43,7 @@ pub enum LangError {
 }
 
 pub struct ErrorReporter<'a> {
-    files: SimpleFiles<&'a str, &'a str>,
+    files: &'a SimpleFiles<String, String>,
     writer: StandardStream,
     config: codespan_reporting::term::Config,
 }
@@ -114,24 +114,12 @@ impl LangError {
 }
 
 impl<'a> ErrorReporter<'a> {
-    pub fn new() -> Self {
-        Self {
-            files: SimpleFiles::new(),
-            writer: StandardStream::stderr(ColorChoice::Always),
-            config: codespan_reporting::term::Config::default(),
-        }
-    }
-
-    pub fn with_files(files: SimpleFiles<&'a str, &'a str>) -> Self {
+    pub fn new(files: &'a SimpleFiles<String, String>) -> Self {
         Self {
             files,
             writer: StandardStream::stderr(ColorChoice::Always),
             config: codespan_reporting::term::Config::default(),
         }
-    }
-
-    pub fn add_file(&mut self, name: &'a str, source: &'a str) -> usize {
-        self.files.add(name, source)
     }
 
     pub fn report(&self, file_id: usize, error: &anyhow::Error) -> anyhow::Result<()> {
@@ -144,7 +132,7 @@ impl<'a> ErrorReporter<'a> {
         codespan_reporting::term::emit(
             &mut self.writer.lock(),
             &self.config,
-            &self.files,
+            self.files,
             &diagnostic,
         )?;
 
