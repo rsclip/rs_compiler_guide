@@ -83,7 +83,7 @@ impl Compiler {
 
         println!("Tokenizing: {}", &file_path);
         let tokens = self.lex_file(file_id)?;
-        
+
         println!("Parsing: {}", &file_path);
         let _program = self.parse_tokens(tokens, file_id)?;
 
@@ -102,7 +102,8 @@ impl Compiler {
         };
 
         if self.options.print_ast {
-            println!("{:#?}", ast);
+            // println!("{:#?}", ast);
+            println!("{}", ast);
         }
 
         Ok(ast)

@@ -2,6 +2,7 @@ extern crate anyhow;
 extern crate codespan_reporting;
 extern crate gumdrop;
 extern crate thiserror;
+extern crate display_tree;
 
 pub mod errors;
 pub mod lexer;

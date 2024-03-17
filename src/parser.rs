@@ -276,6 +276,9 @@ impl Parser {
             expression,
         });
 
+        // ";"
+        self.expect(TokenKind::Semicolon)?;
+
         println!("Parsed variable decl: {:#?}", var_decl);
 
         Ok(var_decl)

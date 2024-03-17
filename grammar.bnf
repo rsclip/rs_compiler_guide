@@ -23,8 +23,8 @@ primitive_type    ::= "int" | "float" | "bool"
 block             ::= "{" statement* "}"
 
 statement         ::= expression ";"
-                    | variable_decl
-                    | flow_statement
+                    | variable_decl ";"
+                    | flow_statement ";"
 
 
 expression        ::= primary_expression
