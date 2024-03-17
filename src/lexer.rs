@@ -94,13 +94,6 @@ impl<'a> Lexer<'a> {
         let end = self.pos;
 
         let value = &self.src[start..end];
-        if value.is_empty() {
-            return Err(anyhow!(LangError::ExpectedAnyToken {
-                expected: vec![TokenKind::IntegerLiteral(0), TokenKind::FloatLiteral(0.0)],
-                found: "Empty literal".to_string(),
-                span: Span { start, end },
-            }));
-        }
 
         if has_decimal {
             match value.parse() {
@@ -116,7 +109,7 @@ impl<'a> Lexer<'a> {
         } else {
             match value.parse() {
                 Ok(i) => Ok(Token {
-                    kind: TokenKind::IntegerLiteral(i),
+                    kind: TokenKind::IntLiteral(i),
                     span: Span { start, end },
                 }),
                 Err(_) => Err(anyhow!(LangError::InvalidLiteral(
@@ -205,10 +198,10 @@ impl<'a> Iterator for Lexer<'a> {
                 }
                 '0'..='9' => self.lex_number(),
                 'a'..='z' | 'A'..='Z' | '_' => self.lex_word(),
-                '{' => Ok(self.lex_single_char(TokenKind::OpenBrace)),
-                '}' => Ok(self.lex_single_char(TokenKind::CloseBrace)),
-                '(' => Ok(self.lex_single_char(TokenKind::OpenParen)),
-                ')' => Ok(self.lex_single_char(TokenKind::CloseParen)),
+                '{' => Ok(self.lex_single_char(TokenKind::LBrace)),
+                '}' => Ok(self.lex_single_char(TokenKind::RBrace)),
+                '(' => Ok(self.lex_single_char(TokenKind::LParen)),
+                ')' => Ok(self.lex_single_char(TokenKind::RParen)),
                 ';' => Ok(self.lex_single_char(TokenKind::Semicolon)),
                 ',' => Ok(self.lex_single_char(TokenKind::Comma)),
                 '.' => Ok(self.lex_single_char(TokenKind::Dot)),

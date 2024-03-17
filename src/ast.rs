@@ -1,91 +1,109 @@
 //! Represents the AST of the language,
 //! in accordance with the grammar defined in `grammar.bnf`.
+#![allow(dead_code)]
 
-pub enum Program {
-    Item(Vec<Item>),
+#[derive(Debug)]
+pub struct Program {
+    pub items: Vec<Item>,
 }
 
+#[derive(Debug)]
 pub enum Item {
     FunctionDecl(FunctionDecl),
 }
 
+#[derive(Debug)]
 pub enum Type {
     Primitive(PrimitiveType),
 }
 
+#[derive(Debug)]
 pub enum Statement {
     Expression(Box<Expression>),
     VariableDecl(VariableDecl),
     Flow(FlowStatement),
 }
 
+#[derive(Debug)]
 pub enum Expression {
     Primary(PrimaryExpression),
     Unary(UnaryExpression),
     Binary(BinaryExpression),
 }
 
+#[derive(Debug)]
 pub struct FunctionDecl {
-    identifier: String,
-    parameters: Vec<Parameter>,
-    return_type: Type,
-    block: Block,
+    pub ident: String,
+    pub parameters: Vec<Parameter>,
+    pub ty: Type,
+    pub block: Block,
 }
 
+#[derive(Debug)]
 pub struct Parameter {
-    identifier: String,
-    param_type: Type,
+    pub ident: String,
+    pub ty: Type,
 }
 
+#[derive(Debug)]
 pub struct VariableDecl {
-    identifier: String,
-    var_type: Type,
-    expression: Expression,
+    pub ident: String,
+    pub ty: Type,
+    pub expression: Expression,
 }
 
+#[derive(Debug)]
 pub struct FlowStatement {
-    condition: Expression,
-    if_block: Block,
-    else_block: Option<Block>,
+    pub condition: Expression,
+    pub if_block: Block,
+    pub else_block: Option<Block>,
 }
 
+#[derive(Debug)]
 pub struct Block {
-    statements: Vec<Statement>,
+    pub statements: Vec<Statement>,
 }
 
+#[derive(Debug)]
 pub struct FunctionType {
-    parameters: Vec<Type>,
-    return_type: Type,
+    pub parameters: Vec<Type>,
+    pub ty: Type,
 }
 
+#[derive(Debug)]
 pub enum PrimitiveType {
     Int,
     Float,
     Bool,
 }
 
+#[derive(Debug)]
 pub enum PrimaryExpression {
     Literal(Literal),
-    Identifier(String),
+    Ident(String),
     Parenthesized(Box<Expression>),
     FunctionCall(String, Vec<Expression>),
 }
 
+#[derive(Debug)]
 pub enum Literal {
     Int(i32),
     Float(f32),
-    Boolean(bool),
+    Bool(bool),
 }
 
+#[derive(Debug)]
 pub enum UnaryExpression {
     Negation(Box<Expression>),
     Not(Box<Expression>),
 }
 
+#[derive(Debug)]
 pub enum BinaryExpression {
     Operation(Box<Expression>, Operator, Box<Expression>),
 }
 
+#[derive(Debug)]
 pub enum Operator {
     Add,
     Subtract,

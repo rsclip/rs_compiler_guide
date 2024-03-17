@@ -7,8 +7,10 @@ use std::path::Path;
 
 use codespan_reporting::files::SimpleFiles;
 
+use crate::ast::Program;
 use crate::errors::ErrorReporter;
 use crate::lexer;
+use crate::parser::Parser;
 use crate::token::Token;
 
 pub struct Compiler {
@@ -75,25 +77,22 @@ impl Compiler {
     }
 
     fn compile_file(&mut self, file_path: String) -> Result<()> {
-        let file_id = self
-            .imports
-            .get(&file_path)
-            .ok_or_else(|| anyhow::anyhow!("File not found"))?;
-
-        let tokens = self.lex_file(*file_id)?;
-        if self.options.print_tokens {
-            for token in &tokens {
-                println!("{:?}", token);
-            }
-        }
+        let file_id = self.imports.get(&file_path).unwrap().clone();
+        let tokens = self.lex_file(file_id)?;
+        let _program = self.compile_tokens(tokens)?;
 
         Ok(())
     }
 
-    fn parse_tokens(&self, tokens: Vec<Token>) -> Result<()> {
+    fn compile_tokens(&mut self, stream: Vec<Token>) -> Result<Program> {
+        let mut parser = Parser::new(stream);
+        let program = parser.parse()?;
 
+        if self.options.print_ast {
+            println!("{:#?}", program);
+        }
 
-        Ok(())
+        Ok(program)
     }
 
     fn lex_file(&self, file_id: usize) -> Result<Vec<Token>> {
@@ -101,6 +100,12 @@ impl Compiler {
 
         let lexer = lexer::Lexer::new(simple_file.source());
         let (tokens, errors) = lexer::consume_lexer(lexer);
+
+        if self.options.print_tokens {
+            for token in &tokens {
+                println!("{:?}", token);
+            }
+        }
 
         if !errors.is_empty() {
             let reporter = ErrorReporter::new(&self.files);

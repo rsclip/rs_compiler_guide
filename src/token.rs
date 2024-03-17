@@ -1,12 +1,14 @@
 //! Represents a token and their respective information.
 
-#[derive(Debug, Clone, PartialEq)]
+use std::hash::{Hash, Hasher};
+
+#[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Span {
     pub start: usize,
     pub end: usize,
@@ -26,25 +28,25 @@ pub enum TokenKind {
     False,
 
     // single-character tokens
-    Plus,       // +
-    Minus,      // -
-    Star,       // *
-    Slash,      // /
-    Percent,    // %
-    Caret,      // ^
-    Bang,       // !
-    Colon,      // :
-    Semicolon,  // ;
-    Comma,      // ,
-    Dot,        // .
-    Equals,     // =
-    Less,       // <
-    Greater,    // >
-    OpenParen,  // (
-    CloseParen, // )
-    OpenBrace,  // {
-    CloseBrace, // }
-    Quote,      // "
+    Plus,      // +
+    Minus,     // -
+    Star,      // *
+    Slash,     // /
+    Percent,   // %
+    Caret,     // ^
+    Bang,      // !
+    Colon,     // :
+    Semicolon, // ;
+    Comma,     // ,
+    Dot,       // .
+    Equals,    // =
+    Less,      // <
+    Greater,   // >
+    LParen,    // (
+    RParen,    // )
+    LBrace,    // {
+    RBrace,    // }
+    Quote,     // "
 
     // double-character tokens
     PlusEquals,    // +=
@@ -60,14 +62,15 @@ pub enum TokenKind {
     Arrow,         // ->
 
     // literals
-    Identifier(String),
-    IntegerLiteral(i64),
-    FloatLiteral(f64),
-    BooleanLiteral(bool),
+    Ident(String),
+    IntLiteral(i32),
+    FloatLiteral(f32),
+    BoolLiteral(bool),
 
     // Data types
     Int,
     Bool,
+    Float,
 
     // End of file
     Eof,
@@ -118,7 +121,8 @@ impl TokenKind {
             "false" => TokenKind::False,
             "int" => TokenKind::Int,
             "bool" => TokenKind::Bool,
-            _ => TokenKind::Identifier(keyword.to_string()),
+            "float" => TokenKind::Float,
+            _ => TokenKind::Ident(keyword.to_string()),
         }
     }
 }
@@ -149,10 +153,10 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Equals => write!(f, "="),
             TokenKind::Less => write!(f, "<"),
             TokenKind::Greater => write!(f, ">"),
-            TokenKind::OpenParen => write!(f, "("),
-            TokenKind::CloseParen => write!(f, ")"),
-            TokenKind::OpenBrace => write!(f, "{{"),
-            TokenKind::CloseBrace => write!(f, "}}"),
+            TokenKind::LParen => write!(f, "("),
+            TokenKind::RParen => write!(f, ")"),
+            TokenKind::LBrace => write!(f, "{{"),
+            TokenKind::RBrace => write!(f, "}}"),
             TokenKind::Quote => write!(f, "\""),
             TokenKind::PlusEquals => write!(f, "+="),
             TokenKind::MinusEquals => write!(f, "-="),
@@ -167,11 +171,12 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Arrow => write!(f, "->"),
             TokenKind::Int => write!(f, "int"),
             TokenKind::Bool => write!(f, "bool"),
+            TokenKind::Float => write!(f, "float"),
             TokenKind::Eof => write!(f, "EOF"),
-            TokenKind::Identifier(id) => write!(f, "{}", id),
-            TokenKind::IntegerLiteral(_) => write!(f, "IntegerLiteral"),
+            TokenKind::Ident(id) => write!(f, "{}", id),
+            TokenKind::IntLiteral(_) => write!(f, "IntegerLiteral"),
             TokenKind::FloatLiteral(_) => write!(f, "FloatLiteral"),
-            TokenKind::BooleanLiteral(_) => write!(f, "BooleanLiteral"),
+            TokenKind::BoolLiteral(_) => write!(f, "BooleanLiteral"),
         }
     }
 }
@@ -179,5 +184,32 @@ impl std::fmt::Display for TokenKind {
 impl std::fmt::Display for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}..{}", self.start, self.end)
+    }
+}
+
+impl Hash for TokenKind {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        // Hash each variant discriminant and associated value
+        match self {
+            TokenKind::Fn => "Fn".hash(state),
+            TokenKind::If => "If".hash(state),
+            TokenKind::Else => "Else".hash(state),
+            TokenKind::While => "While".hash(state),
+            TokenKind::For => "For".hash(state),
+            TokenKind::Return => "Return".hash(state),
+            TokenKind::Let => "Let".hash(state),
+            TokenKind::True => "True".hash(state),
+            TokenKind::False => "False".hash(state),
+            TokenKind::Ident(identifier) => identifier.hash(state),
+            TokenKind::IntLiteral(integer) => integer.hash(state),
+            TokenKind::FloatLiteral(float) => {
+                // Hash the float value as a bit pattern
+                let bytes = float.to_ne_bytes();
+                bytes.hash(state);
+            }
+            TokenKind::BoolLiteral(boolean) => boolean.hash(state),
+            // Handle other variants similarly
+            _ => unimplemented!("Hashing not implemented for this variant"),
+        }
     }
 }

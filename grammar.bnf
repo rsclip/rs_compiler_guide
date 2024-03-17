@@ -20,8 +20,6 @@ type              ::= primitive_type
 
 primitive_type    ::= "int" | "float" | "bool"
 
-user_defined_type ::= IDENTIFIER
-
 block             ::= "{" statement* "}"
 
 statement         ::= expression ";"
@@ -38,7 +36,7 @@ primary_expression ::= literal
                     | "(" expression ")"
                     | function_call
 
-literal           ::= NUMBER | BOOLEAN
+literal           ::= INT | FLOAT | BOOLEAN
 
 unary_expression  ::= "-" expression | "!" expression #| "&" expression | "*" expression
 

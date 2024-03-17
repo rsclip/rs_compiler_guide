@@ -23,7 +23,7 @@ pub enum LangError {
     #[error("Expected token: `{expected}`, found: `{found}`")]
     ExpectedToken {
         expected: TokenKind,
-        found: String,
+        found: TokenKind,
         span: Span,
     },
     // Was expecting any of the tokens, found another
@@ -33,7 +33,7 @@ pub enum LangError {
     )]
     ExpectedAnyToken {
         expected: Vec<TokenKind>,
-        found: String,
+        found: TokenKind,
         span: Span,
     },
     // Unexpected EOF
