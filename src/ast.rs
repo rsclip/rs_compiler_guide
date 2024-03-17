@@ -3,6 +3,12 @@
 #![allow(dead_code)]
 
 #[derive(Debug)]
+pub struct AST {
+    pub program: Program,
+    pub file_id: usize,
+}
+
+#[derive(Debug)]
 pub struct Program {
     pub items: Vec<Item>,
 }

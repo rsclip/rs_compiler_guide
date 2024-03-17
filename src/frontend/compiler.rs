@@ -7,7 +7,7 @@ use std::path::Path;
 
 use codespan_reporting::files::SimpleFiles;
 
-use crate::ast::Program;
+use crate::ast::AST;
 use crate::errors::ErrorReporter;
 use crate::lexer;
 use crate::parser::Parser;
@@ -70,7 +70,9 @@ impl Compiler {
 
         // Loop until all files are compiled
         while let Some(file_path) = files_to_compile.pop() {
+            println!("Compiling: {}", &file_path);
             self.compile_file(file_path)?;
+            print!("Compiled");
         }
 
         Ok(())
@@ -78,21 +80,32 @@ impl Compiler {
 
     fn compile_file(&mut self, file_path: String) -> Result<()> {
         let file_id = self.imports.get(&file_path).unwrap().clone();
+
+        println!("Tokenizing: {}", &file_path);
         let tokens = self.lex_file(file_id)?;
-        let _program = self.compile_tokens(tokens)?;
+        
+        println!("Parsing: {}", &file_path);
+        let _program = self.parse_tokens(tokens, file_id)?;
 
         Ok(())
     }
 
-    fn compile_tokens(&mut self, stream: Vec<Token>) -> Result<Program> {
+    fn parse_tokens(&mut self, stream: Vec<Token>, file_id: usize) -> Result<AST> {
         let mut parser = Parser::new(stream);
-        let program = parser.parse()?;
+        let ast = match parser.parse(file_id) {
+            Ok(program) => program,
+            Err(err) => {
+                let reporter = ErrorReporter::new(&self.files);
+                reporter.report(file_id, &err)?;
+                return Err(anyhow::anyhow!("Failed to parse file"));
+            }
+        };
 
         if self.options.print_ast {
-            println!("{:#?}", program);
+            println!("{:#?}", ast);
         }
 
-        Ok(program)
+        Ok(ast)
     }
 
     fn lex_file(&self, file_id: usize) -> Result<Vec<Token>> {

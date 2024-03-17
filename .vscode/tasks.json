@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cargo build",
+			"command": "cargo",
+			"type": "shell",
+			// build in:
+			// 1. debug mode profile
+			// 2. debuginfo-level-std = 2
+			"args": ["build", "--package", "pyler", "--bin", "pyler", "--debug", "--no-optimize", "--debuginfo=2"],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+        }
+    ]
+}

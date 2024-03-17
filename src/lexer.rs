@@ -205,6 +205,7 @@ impl<'a> Iterator for Lexer<'a> {
                 ';' => Ok(self.lex_single_char(TokenKind::Semicolon)),
                 ',' => Ok(self.lex_single_char(TokenKind::Comma)),
                 '.' => Ok(self.lex_single_char(TokenKind::Dot)),
+                ':' => Ok(self.lex_single_char(TokenKind::Colon)),
                 _ => {
                     // try ident/keyword
                     if ch.is_alphabetic() {
@@ -239,6 +240,13 @@ pub fn consume_lexer(lexer: Lexer) -> (Vec<Token>, Vec<Error>) {
         }
     }
     (tokens, errors)
+}
+
+/// Pretty print a token stream
+pub fn pretty_print_tokens(tokens: &Vec<Token>) {
+    for token in tokens {
+        print!("{} ", token.kind);
+    }
 }
 
 #[cfg(test)]
@@ -278,5 +286,18 @@ mod tests {
                 .report(file_id, &err)
                 .expect("Failed to report error");
         }
+    }
+
+    #[test]
+    fn lex_function() {
+        let src = "fn add(a: int, b: int) -> int { return a + b; }";
+        let lexer = Lexer::new(src);
+        let (tokens, errors) = consume_lexer(lexer);
+        
+        pretty_print_tokens(&tokens);
+
+        assert_eq!(errors.len(), 0);
+
+        assert_eq!(tokens.len(), 20);
     }
 }

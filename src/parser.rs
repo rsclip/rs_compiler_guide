@@ -112,6 +112,7 @@ impl Parser {
     }
 
     fn function(&mut self) -> Result<FunctionDecl> {
+        println!("Parsing function");
         // "fn"
         self.expect(TokenKind::Fn)?;
 
@@ -144,15 +145,21 @@ impl Parser {
         // block
         let block = self.block()?;
 
-        Ok(FunctionDecl {
+        let func = FunctionDecl {
             ident,
             parameters: params,
             ty,
             block,
-        })
+        };
+
+        println!("Parsed function: {:#?}", func);
+
+        Ok(func)
     }
 
     fn ident(&mut self) -> Result<String> {
+        println!("Parsing ident (no-end)");
+
         match self.current_or_eof()?.kind {
             TokenKind::Ident(ref ident) => {
                 let ident = ident.clone();
@@ -168,6 +175,8 @@ impl Parser {
     }
 
     fn parameter(&mut self) -> Result<Parameter> {
+        println!("Parsing parameter");
+
         // IDENTIFIER
         let ident = self.ident()?;
 
@@ -177,10 +186,16 @@ impl Parser {
         // type
         let ty = self.type_()?;
 
-        Ok(Parameter { ident, ty })
+        let param = Parameter { ident, ty };
+
+        println!("Parsed parameter: {:#?}", param);
+
+        Ok(param)
     }
 
     fn type_(&mut self) -> Result<Type> {
+        println!("Parsing type (no-end)");
+
         match self.current_or_eof()?.kind {
             TokenKind::Int => {
                 self.advance();
@@ -199,6 +214,8 @@ impl Parser {
     }
 
     fn block(&mut self) -> Result<Block> {
+        println!("Parsing block");
+
         // "{"
         self.expect(TokenKind::LBrace)?;
 
@@ -211,10 +228,16 @@ impl Parser {
         // "}"
         self.expect(TokenKind::RBrace)?;
 
-        Ok(Block { statements })
+        let block = Block { statements };
+
+        println!("Parsed block: {:#?}", block);
+
+        Ok(block)
     }
 
     fn statement(&mut self) -> Result<Statement> {
+        println!("Parsing statement (no-end)");
+
         match self.current_or_eof()?.kind {
             TokenKind::Let => self.variable_decl(),
             TokenKind::If => self.flow_statement(),
@@ -227,6 +250,8 @@ impl Parser {
     }
 
     fn variable_decl(&mut self) -> Result<Statement> {
+        println!("Parsing variable decl");
+
         // "let"
         self.expect(TokenKind::Let)?;
 
@@ -245,14 +270,20 @@ impl Parser {
         // expression
         let expression = self.expression()?;
 
-        Ok(Statement::VariableDecl(VariableDecl {
+        let var_decl = Statement::VariableDecl(VariableDecl {
             ident,
             ty,
             expression,
-        }))
+        });
+
+        println!("Parsed variable decl: {:#?}", var_decl);
+
+        Ok(var_decl)
     }
 
     fn flow_statement(&mut self) -> Result<Statement> {
+        println!("Parsing flow statement");
+
         // "if"
         self.expect(TokenKind::If)?;
 
@@ -268,11 +299,15 @@ impl Parser {
         // block
         let else_block = self.block()?;
 
-        Ok(Statement::Flow(FlowStatement {
+        let stmt = Statement::Flow(FlowStatement {
             condition,
             if_block,
             else_block: Some(else_block),
-        }))
+        });
+
+        println!("Parsed flow statement: {:#?}", stmt);
+
+        Ok(stmt)
     }
 
     // ====================
@@ -284,10 +319,17 @@ impl Parser {
     // ====================
 
     fn expression(&mut self) -> Result<Expression> {
-        self.primary_expression()
+        println!("Parsing expression");
+        let expr = self.primary_expression();
+
+        println!("Parsed expression: {:#?}", expr);
+
+        expr
     }
 
     fn primary_expression(&mut self) -> Result<Expression> {
+        println!("Parsing primary expression (no-end)");
+
         match self.current_or_eof()?.kind {
             TokenKind::IntLiteral(ref value) => {
                 let value = value.clone();
@@ -325,8 +367,11 @@ impl Parser {
     // ====================
 
     /// Parse the token stream into an AST
-    pub fn parse(&mut self) -> Result<Program> {
+    pub fn parse(&mut self, file_id: usize) -> Result<AST> {
         let program = self.program()?;
-        Ok(program)
+        Ok(AST {
+            program,
+            file_id,
+        })
     }
 }
