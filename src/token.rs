@@ -2,6 +2,8 @@
 
 use std::hash::{Hash, Hasher};
 
+use crate::ast::BinaryOperator;
+
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Token {
     pub kind: TokenKind,
@@ -77,6 +79,7 @@ pub enum TokenKind {
 }
 
 impl TokenKind {
+    /// Get operator from a string
     pub fn operator_from(op: &str) -> TokenKind {
         match op {
             "+" => TokenKind::Plus,
@@ -108,6 +111,25 @@ impl TokenKind {
         }
     }
 
+    /// Convert to binary operator
+    pub fn as_binary_operator(&self) -> Option<BinaryOperator> {
+        match self {
+            TokenKind::Plus => Some(BinaryOperator::Add),
+            TokenKind::Minus => Some(BinaryOperator::Subtract),
+            TokenKind::Star => Some(BinaryOperator::Multiply),
+            TokenKind::Slash => Some(BinaryOperator::Divide),
+            TokenKind::Percent => Some(BinaryOperator::Modulus),
+            TokenKind::EqualsEquals => Some(BinaryOperator::Equal),
+            TokenKind::BangEquals => Some(BinaryOperator::NotEqual),
+            TokenKind::Less => Some(BinaryOperator::LessThan),
+            TokenKind::Greater => Some(BinaryOperator::GreaterThan),
+            TokenKind::LessEquals => Some(BinaryOperator::LessThanOrEqual),
+            TokenKind::GreaterEquals => Some(BinaryOperator::GreaterThanOrEqual),
+            _ => None,
+        }
+    }
+
+    /// Get keyword from a string
     pub fn keyword_from(keyword: &str) -> TokenKind {
         match keyword {
             "fn" => TokenKind::Fn,
@@ -123,6 +145,75 @@ impl TokenKind {
             "bool" => TokenKind::Bool,
             "float" => TokenKind::Float,
             _ => TokenKind::Ident(keyword.to_string()),
+        }
+    }
+
+    /// Is literal?
+    pub fn is_literal(&self) -> bool {
+        match self {
+            TokenKind::IntLiteral(_) | TokenKind::FloatLiteral(_) | TokenKind::BoolLiteral(_) => {
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Is operator?
+    pub fn is_operator(&self) -> bool {
+        match self {
+            TokenKind::Plus
+            | TokenKind::Minus
+            | TokenKind::Star
+            | TokenKind::Slash
+            | TokenKind::Percent
+            | TokenKind::Caret
+            | TokenKind::Bang
+            | TokenKind::Colon
+            | TokenKind::Semicolon
+            | TokenKind::Comma
+            | TokenKind::Dot
+            | TokenKind::Equals
+            | TokenKind::Less
+            | TokenKind::Greater
+            | TokenKind::PlusEquals
+            | TokenKind::MinusEquals
+            | TokenKind::StarEquals
+            | TokenKind::SlashEquals
+            | TokenKind::PercentEquals
+            | TokenKind::CaretEquals
+            | TokenKind::BangEquals
+            | TokenKind::LessEquals
+            | TokenKind::GreaterEquals
+            | TokenKind::EqualsEquals
+            | TokenKind::Arrow => true,
+            _ => false,
+        }
+    }
+
+    /// Is keyword?
+    pub fn is_keyword(&self) -> bool {
+        match self {
+            TokenKind::Fn
+            | TokenKind::If
+            | TokenKind::Else
+            | TokenKind::While
+            | TokenKind::For
+            | TokenKind::Return
+            | TokenKind::Let
+            | TokenKind::True
+            | TokenKind::False
+            | TokenKind::Int
+            | TokenKind::Bool
+            | TokenKind::Float => true,
+            _ => false,
+        }
+    }
+
+    /// Is data type?
+    pub fn is_data_type(&self) -> bool {
+        match self {
+            TokenKind::Int | TokenKind::Bool | TokenKind::Float => true,
+            _ => false,
         }
     }
 }

@@ -27,12 +27,14 @@ impl Parser {
     }
 
     /// Get current token
+    /// Same as peeking
     fn current(&self) -> Option<&Token> {
         self.tokens.get(self.pos())
     }
 
     /// Get current token
     /// Raises an error if at EOF
+    /// Same as peeking
     fn current_or_eof(&self) -> Result<&Token> {
         self.current().ok_or_else(|| anyhow!(self.eof_error()))
     }
@@ -157,14 +159,14 @@ impl Parser {
         Ok(func)
     }
 
-    fn ident(&mut self) -> Result<String> {
+    fn ident(&mut self) -> Result<Ident> {
         println!("Parsing ident (no-end)");
 
         match self.current_or_eof()?.kind {
             TokenKind::Ident(ref ident) => {
                 let ident = ident.clone();
                 self.advance();
-                Ok(ident)
+                Ok(Ident { ident })
             }
             _ => Err(anyhow!(LangError::ExpectedToken {
                 expected: TokenKind::Ident("".to_string()),
@@ -241,6 +243,7 @@ impl Parser {
         match self.current_or_eof()?.kind {
             TokenKind::Let => self.variable_decl(),
             TokenKind::If => self.flow_statement(),
+            TokenKind::Return => self.return_statement(),
             _ => Err(anyhow!(LangError::ExpectedAnyToken {
                 expected: vec![TokenKind::Let,],
                 found: self.current_or_eof()?.kind.clone(),
@@ -313,6 +316,25 @@ impl Parser {
         Ok(stmt)
     }
 
+    fn return_statement(&mut self) -> Result<Statement> {
+        println!("Parsing return statement");
+
+        // "return"
+        self.expect(TokenKind::Return)?;
+
+        // expression
+        let expression = self.expression()?;
+
+        let stmt = Statement::Return(Box::new(expression));
+
+        // ";"
+        self.expect(TokenKind::Semicolon)?;
+
+        println!("Parsed return statement: {:#?}", stmt);
+
+        Ok(stmt)
+    }
+
     // ====================
     // Expression parsing
     // Should support:
@@ -323,42 +345,95 @@ impl Parser {
 
     fn expression(&mut self) -> Result<Expression> {
         println!("Parsing expression");
-        let expr = self.primary_expression();
+        let mut expr = self.primary()?;
+
+        while let Some(op) = self.current_or_eof()?.kind.as_binary_operator() {
+            let op_precedence = op.precedence();
+
+            // Check if the operator precedence is higher than the previous operator
+            if let Some(prev_op) = expr.binary_operator() {
+                if op_precedence <= prev_op.precedence() {
+                    break; // Break the loop if the current operator has lower precedence
+                }
+            }
+
+            // Consume the operator token
+            self.advance();
+
+            // Parse the right-hand side expression
+            let rhs = self.primary()?;
+
+            // Parse binary expression
+            expr = Expression::Binary(BinaryExpression {
+                lhs: Box::new(expr),
+                op: op,
+                rhs: Box::new(rhs),
+            });
+        }
 
         println!("Parsed expression: {:#?}", expr);
 
-        expr
+        Ok(expr)
     }
 
-    fn primary_expression(&mut self) -> Result<Expression> {
+    fn primary(&mut self) -> Result<Expression> {
+        // match self.current_or_eof()?.kind {
+        //     TokenKind::Literal(_) => self.literal().map(Expression::Primary),
+        //     TokenKind::Identifier(_) => self.identifier().map(Expression::Primary),
+        //     TokenKind::LeftParenthesis => {
+        //         self.advance();
+        //         let expr = self.expression()?;
+        //         self.expect(TokenKind::RightParenthesis)?;
+        //         Ok(Expression::Primary(PrimaryExpression::Parenthesized(Box::new(expr))))
+        //     }
+        //     _ => Err(ParseError::new("Expected primary expression")),
+        // }
+
         println!("Parsing primary expression (no-end)");
 
         match self.current_or_eof()?.kind {
-            TokenKind::IntLiteral(ref value) => {
-                let value = value.clone();
-                self.advance();
-                Ok(Expression::Primary(PrimaryExpression::Literal(
-                    Literal::Int(value),
-                )))
+            TokenKind::IntLiteral(_) | TokenKind::BoolLiteral(_) => {
+                self.literal().map(Expression::Primary)
             }
-            TokenKind::BoolLiteral(ref value) => {
-                let value = value.clone();
-                self.advance();
-                Ok(Expression::Primary(PrimaryExpression::Literal(
-                    Literal::Bool(value),
-                )))
-            }
-            TokenKind::Ident(ref ident) => {
-                let ident = ident.clone();
-                self.advance();
+            TokenKind::Ident(_) => {
+                let ident = self.ident()?;
                 Ok(Expression::Primary(PrimaryExpression::Ident(ident)))
+            }
+            TokenKind::LParen => {
+                self.advance();
+                let expr = self.expression()?;
+                self.expect(TokenKind::RParen)?;
+                Ok(Expression::Primary(PrimaryExpression::Parenthesized(
+                    Box::new(expr),
+                )))
             }
             _ => Err(anyhow!(LangError::ExpectedAnyToken {
                 expected: vec![
                     TokenKind::IntLiteral(0),
-                    TokenKind::BoolLiteral(true),
+                    TokenKind::BoolLiteral(false),
                     TokenKind::Ident("".to_string()),
+                    TokenKind::LParen,
                 ],
+                found: self.current_or_eof()?.kind.clone(),
+                span: self.current_or_eof()?.span.clone(),
+            })),
+        }
+    }
+
+    fn literal(&mut self) -> Result<PrimaryExpression> {
+        println!("Parsing literal (no-end)");
+
+        match self.current_or_eof()?.kind {
+            TokenKind::IntLiteral(value) => {
+                self.advance();
+                Ok(PrimaryExpression::Literal(Literal::Int(value)))
+            }
+            TokenKind::BoolLiteral(value) => {
+                self.advance();
+                Ok(PrimaryExpression::Literal(Literal::Bool(value)))
+            }
+            _ => Err(anyhow!(LangError::ExpectedAnyToken {
+                expected: vec![TokenKind::IntLiteral(0), TokenKind::BoolLiteral(false),],
                 found: self.current_or_eof()?.kind.clone(),
                 span: self.current_or_eof()?.span.clone(),
             })),
@@ -372,9 +447,6 @@ impl Parser {
     /// Parse the token stream into an AST
     pub fn parse(&mut self, file_id: usize) -> Result<AST> {
         let program = self.program()?;
-        Ok(AST {
-            program,
-            file_id,
-        })
+        Ok(AST { program, file_id })
     }
 }
