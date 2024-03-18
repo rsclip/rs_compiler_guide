@@ -72,7 +72,7 @@ impl Compiler {
         while let Some(file_path) = files_to_compile.pop() {
             println!("Compiling: {}", &file_path);
             self.compile_file(file_path)?;
-            print!("Compiled");
+            println!("Compiled");
         }
 
         Ok(())

@@ -377,18 +377,6 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expression> {
-        // match self.current_or_eof()?.kind {
-        //     TokenKind::Literal(_) => self.literal().map(Expression::Primary),
-        //     TokenKind::Identifier(_) => self.identifier().map(Expression::Primary),
-        //     TokenKind::LeftParenthesis => {
-        //         self.advance();
-        //         let expr = self.expression()?;
-        //         self.expect(TokenKind::RightParenthesis)?;
-        //         Ok(Expression::Primary(PrimaryExpression::Parenthesized(Box::new(expr))))
-        //     }
-        //     _ => Err(ParseError::new("Expected primary expression")),
-        // }
-
         println!("Parsing primary expression (no-end)");
 
         match self.current_or_eof()?.kind {
