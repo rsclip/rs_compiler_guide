@@ -3,6 +3,8 @@ This guide serves as a brief process of developing a compiler for our own progra
 
 I am quite a beginner in both Rust and Compiler Development, so the code may be messy and very badly/inefficiently implemented. Either way, it can be a great starting point!
 
+I'll link resources frequently throughout the guide, and I'll also provide a list of resources at the end. They will be at the bottom of each (sub)section.
+
 Not all code covered will be included in the guide, but the final code will be available in the final GitHub repository at the bottom.
 ## Goals of the Guide
 Learning how to develop a compiler is ridiculously confusing with a high barrier-to-entry and no solid guide on how to make one. Thus, this guide will:
@@ -29,6 +31,8 @@ Albeit not required, it would greatly help if you have knowledge of some more to
 - Understanding of grammars (EBNF, BNF, etc.)
 - Knowledge of basic compiler theory concepts (lexical analysis, parsing, optimization, etc.)
 - Familiarity with any Assembly languages or low-level programming concepts
+- Understanding of basic Mathematics (set theory, logic, etc.)
+- Understanding of Mathematic notations
 
 A lot of these will be covered regardless.
 ## Overview of Compilers
@@ -73,3 +77,9 @@ Applies various transformations to the IR -- or directly to the AST -- to improv
 
 **Code generation**:
 Finally, the optimized IR is translated into machine code suitable for execution on the target ISA. This maps the constructs in IR to low-level instructions, whilst ensuring the target architecture's resources are being used efficiently.
+
+
+# Resources
+- [Crafting Interpreters](https://craftinginterpreters.com/): A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.
+- [Rust Programming Language](https://doc.rust-lang.org/book/): The official Rust book is a great resource for learning Rust.
+- [Programming Language Pragmatics](https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096): A book by Michael Scott which covers the theory of programming languages, including compilers.

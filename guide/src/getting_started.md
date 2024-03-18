@@ -12,15 +12,15 @@ I would recommend using git for version control.
 ### Crates
 There are some crates (libraries) we can install to make the development process easier.
 
-**Errors**
+**Errors**  
 [anyhow](https://crates.io/crates/anyhow) is a great crate for propagating errors idiomatically.
 [thiserror](https://crates.io/crates/thiserror) will help us to implement our own error enums.
 For our error messages, this guide will [codespan-reporting](https://crates.io/crates/codespan_reporting) for its pretty errors and simple interface. Alternatively (and probably better), [ariadne](https://crates.io/crates/ariadne) produces better diagnostics.
 
-**CLI Parsing**
+**CLI Parsing**  
 This guide will use [gumdrop](https://crates.io/crates/gumdrop) since our compiler will be incredibly simplistic, and its much faster than [clap](https://crates.io/crates/clap) (although that's a great alternative, albeit relatively slow and large).
 
-**Code Generation**
+**Code Generation**  
 This guide (un)fortunately won't cover the specific code-generation as it's very out-of-scope and complex, not suitable for a beginner guide.
 
 [Cranelift](https://cranelift.dev/) is a fast compiler backend made in Rust we'll use.
@@ -54,4 +54,12 @@ compiler/
 +-- tests
 ```
 
-It's important to note that this is **not** the final structure.
+<div class="warning">
+
+This is **not** the final structure, but a starting point. We will add more files as we go along.
+
+</div>
+
+# Resources
+- [Rust's book](https://doc.rust-lang.org/book/ch01-01-installation.html) (the installation section): The official Rust book is a great resource for installing and learning Rust.
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/): A great resource for learning Rust by example.
