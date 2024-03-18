@@ -1,0 +1,6 @@
+[book]
+authors = ["Me"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Writing a Compiler in Rust from scratch"
