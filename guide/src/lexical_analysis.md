@@ -58,3 +58,7 @@ And so forth. This will help us understand how we can structure our tokens.
 
 # Resources
 - [Awesome FSM](https://github.com/leonardomso/awesome-fsm): A curated list of awesome finite state machine libraries, software and resources.
+- [Iterator trait](https://doc.rust-lang.org/std/iter/trait.Iterator.html): The official documentation for the `Iterator` trait.
+- [Lifetimes in Rust](https://doc.rust-lang.org/rust-by-example/scope/lifetime.html)
+- [Finite Automata](./finite_automata.md) in this guide!
+- [Rust's Strings](https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356): A comprehensive guide to Rust's strings.
