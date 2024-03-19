@@ -5,7 +5,7 @@ item              ::= function_decl
                     # | enum_decl
                     # | impl_block
 
-function_decl     ::= "fn" IDENTIFIER "(" [parameter_list] ")" "->" type block
+function_decl     ::= "fn" IDENTIFIER "(" {parameter_list} ")" "->" type block
 
 parameter_list    ::= parameter ("," parameter)*
 
@@ -22,7 +22,7 @@ primitive_type    ::= "int" | "float" | "bool"
 
 block             ::= "{" statement* "}"
 
-statement         ::= expression ";"
+statement         ::= expression
                     | variable_decl ";"
                     | flow_statement ";"
 
@@ -47,7 +47,5 @@ arguments         ::= expression ("," expression)* | ε
 
 variable_decl     ::= "let" IDENTIFIER ":" type "=" expression
 
-flow_statement    ::= "if" condition block ("else" block)?
+flow_statement    ::= "if" expression block {"else" block}
                     | "return" expression?
-
-condition         ::= expression

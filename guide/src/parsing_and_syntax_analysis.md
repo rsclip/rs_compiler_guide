@@ -8,3 +8,14 @@ This chapter will cover the following topics:
 - How to implement a parser
 
 # Resources
+- [Abstract Syntax Trees - Wikipedia](https://en.wikipedia.org/wiki/Abstract_syntax_tree)
+- [ASTs vs CSTs](https://eli.thegreenplace.net/2009/02/16/abstract-vs-concrete-syntax-trees)
+- [Rust Syn crate](https://docs.rs/syn/1.0.72/syn/)
+- [Tree Data Structures](https://en.wikipedia.org/wiki/Tree_(data_structure))
+- [Tree Traversal](https://en.wikipedia.org/wiki/Tree_traversal)
+- [DFS, BFS](https://www.cs.cornell.edu/courses/cs2110/2017sp/online/dfs/dfs01.html)
+- [BNF](https://www.ketteringscienceacademy.org/attachments/download.asp?file=1057&type=pdf): The dates example is from this resource.
+- [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form): Wikipedia's page on EBNF.
+- [EBNF](https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf): The official ISO standard for EBNF.
+- [EBNF](https://www.cs.uic.edu/~liub/teach/cs494/ebnf.pdf): A more concise and readable resource on EBNF.
+- [Intro to Programming Languages/Grammars](https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars): A Wikibooks page on grammars.

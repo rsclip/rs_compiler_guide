@@ -34,7 +34,8 @@ Albeit not required, it would greatly help if you have knowledge of some more to
 - Understanding of basic Mathematics (set theory, logic, etc.)
 - Understanding of Mathematic notations
 
-A lot of these will be covered regardless.
+Although this may be a daunting list, it's not necessary to know everything. The guide will cover most of these topics, and it's not at all difficult to learn them as you go along!
+
 ## Overview of Compilers
 ### What is a Compiler?
 A compiler is a program that translates source code (represented as text) written in a higher-level programming language into machine code which a computer can execute directly. It may also be translated into bytecode, in which a virtual machine (like Java's Virtual Machine or Python's interpreter) can interpret and run, although this requires the VM to be installed. It plays a crucial role by facilitating in the conversion of human-readable code into a format understandable by the computer's hardware.
