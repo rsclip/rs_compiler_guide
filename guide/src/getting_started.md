@@ -45,7 +45,7 @@ compiler/
 |-- Cargo.toml
 |-- grammar.bnf
 +-- src
-  +-- ast          // We will store our AST items here
+  +-- ast          // We will store our AST items here (folder)
   |-- errors.rs    // Error enum here
   |-- lexer.rs     // Lexical analysis
   |-- main.rs      // Main entry point

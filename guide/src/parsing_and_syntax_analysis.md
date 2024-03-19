@@ -26,3 +26,6 @@ This chapter will cover the following topics:
 - [LL(k) Parser](https://github.com/GabrielMajeri/LL-K-Parser): A Python implementation of an LL(k) parser
 - [LR Parsing](https://en.wikipedia.org/wiki/LR_parser) on Wikipedia
 - [LR Parsing GfG](https://www.geeksforgeeks.org/lr-parser/): GeeksforGeeks article on LR Parsing
+- [Operator Precedence](https://en.wikipedia.org/wiki/Operator-precedence_parser)
+- [Box<T>](https://doc.rust-lang.org/std/boxed/struct.Box.html)
+- [`Display` trait](https://doc.rust-lang.org/std/fmt/trait.Display.html)

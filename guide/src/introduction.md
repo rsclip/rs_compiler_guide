@@ -87,19 +87,36 @@ Some resources you could read into for this page in particular.
 - [Crafting Interpreters](https://craftinginterpreters.com/): A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.
 - [Rust Programming Language](https://doc.rust-lang.org/book/): The official Rust book is a great resource for learning Rust.
 - [Programming Language Pragmatics](https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096): A book by Michael Scott which covers the theory of programming languages, including compilers.
+- [Intro to Compilers](https://www.cs.cornell.edu/courses/cs412/2008sp/lectures/lec20.pdf), a lecture by Andrew Myers at Cornell University.
 
 # All resources
 All resources used in this guide will be listed here!
-- [Crafting Interpreters](https://craftinginterpreters.com/): A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.
-- [Rust Programming Language](https://doc.rust-lang.org/book/): The official Rust book is a great resource for learning Rust.
-- [Programming Language Pragmatics](https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096): A book by Michael Scott which covers the theory of programming languages, including compilers.
-- [Rust's book](https://doc.rust-lang.org/book/ch01-01-installation.html) (the installation section): The official Rust book is a great resource for installing and learning Rust.
-- [Rust by Example](https://doc.rust-lang.org/rust-by-example/): A great resource for learning Rust by example.
-- [Awesome FSM](https://github.com/leonardomso/awesome-fsm): A curated list of awesome finite state machine libraries, software and resources.
-- [Iterator trait](https://doc.rust-lang.org/std/iter/trait.Iterator.html): The official documentation for the `Iterator` trait.
-- [Lifetimes in Rust](https://doc.rust-lang.org/rust-by-example/scope/lifetime.html)
-- [Finite Automata](./finite_automata.md) in this guide!
-- [Rust's Strings](https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356): A comprehensive guide to Rust's strings.
+- [Introduction](./introduction.md)
+	- [Crafting Interpreters](https://craftinginterpreters.com/): A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.
+	- [Rust Programming Language](https://doc.rust-lang.org/book/): The official Rust book is a great resource for learning Rust.
+	- [Programming Language Pragmatics](https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096): A book by Michael Scott which covers the theory of programming languages, including compilers.
+	- [Intro to Compilers](https://www.cs.cornell.edu/courses/cs412/2008sp/lectures/lec20.pdf), a lecture by Andrew Myers at Cornell University.
+
+- [Getting Started](./getting_started.md)
+	- [Rust's book](https://doc.rust-lang.org/book/ch01-01-installation.html) (the installation section): The official Rust book is a great resource for installing and learning Rust.
+	- [Rust by Example](https://doc.rust-lang.org/rust-by-example/): A great resource for learning Rust by example.
+
+- [Error Handling](./error_handling.md)
+	- [codespan-reporting](https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/)
+	- [thiserror](https://docs.rs/thiserror/1.0.24/thiserror/)
+	- [codespan-reporting example](https://crates.io/crates/codespan-reporting)
+	- [SimpleFiles](https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/files/struct.SimpleFiles.html)
+	- [Diagnostic](https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/diagnostic/struct.Diagnostic.html)
+	- [Label](https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/diagnostic/struct.Label.html)
+	- [Error Recovery](https://en.wikipedia.org/wiki/Error_recovery)
+	- [Panic vs Recover in Go](https://go.dev/blog/defer-panic-and-recover)
+
+- [Lexical Analysis](./lexical_analysis.md)
+	- [Awesome FSM](https://github.com/leonardomso/awesome-fsm): A curated list of awesome finite state machine libraries, software and resources.
+	- [Iterator trait](https://doc.rust-lang.org/std/iter/trait.Iterator.html): The official documentation for the `Iterator` trait.
+	- [Lifetimes in Rust](https://doc.rust-lang.org/rust-by-example/scope/lifetime.html)
+	- [Finite Automata](./finite_automata.md) in this guide!
+	- [Rust's Strings](https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356): A comprehensive guide to Rust's strings.
 
 **Todo**:
 - [ ] [Parsing and Syntax Analysis](./parsing_and_syntax_analysis.md)

@@ -2,6 +2,7 @@
 
 - [Introduction](./introduction.md)
 - [Getting Started](./getting_started.md)
+- [Error Handling](./error_handling.md)
 - [Lexical Analysis](./lexical_analysis.md)
     - [Finite Automata](./finite_automata.md)
     - [Tokens](./tokens.md)
@@ -13,5 +14,6 @@
         - [Recursive Descent Parsing](./recursive_descent_parsing.md)
         - [LL(k) Parsing](./ll_k_parsing.md)
         - [LR Parsing](./lr_parsing.md)
+    - [Implementing an AST](./implementing_an_ast.md)
     - [Implementing a Parser](./implementing_a_parser.md)
 - [Semantic Analysis](./semantic_analysis.md)
