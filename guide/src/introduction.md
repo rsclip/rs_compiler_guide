@@ -6,6 +6,7 @@ I am quite a beginner in both Rust and Compiler Development, so the code may be 
 I'll link resources frequently throughout the guide, and I'll also provide a list of resources at the end. They will be at the bottom of each (sub)section.
 
 Not all code covered will be included in the guide, but the final code will be available in the final GitHub repository at the bottom.
+
 ## Goals of the Guide
 Learning how to develop a compiler is ridiculously confusing with a high barrier-to-entry and no solid guide on how to make one. Thus, this guide will:
 - Provide a somewhat thorough understanding of the compilation process, including its stages and components
@@ -80,7 +81,26 @@ Applies various transformations to the IR -- or directly to the AST -- to improv
 Finally, the optimized IR is translated into machine code suitable for execution on the target ISA. This maps the constructs in IR to low-level instructions, whilst ensuring the target architecture's resources are being used efficiently.
 
 
-# Resources
+# Introductory Resources
+Some resources you could read into for this page in particular.
+
 - [Crafting Interpreters](https://craftinginterpreters.com/): A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.
 - [Rust Programming Language](https://doc.rust-lang.org/book/): The official Rust book is a great resource for learning Rust.
 - [Programming Language Pragmatics](https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096): A book by Michael Scott which covers the theory of programming languages, including compilers.
+
+# All resources
+All resources used in this guide will be listed here!
+- [Crafting Interpreters](https://craftinginterpreters.com/): A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.
+- [Rust Programming Language](https://doc.rust-lang.org/book/): The official Rust book is a great resource for learning Rust.
+- [Programming Language Pragmatics](https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096): A book by Michael Scott which covers the theory of programming languages, including compilers.
+- [Rust's book](https://doc.rust-lang.org/book/ch01-01-installation.html) (the installation section): The official Rust book is a great resource for installing and learning Rust.
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/): A great resource for learning Rust by example.
+- [Awesome FSM](https://github.com/leonardomso/awesome-fsm): A curated list of awesome finite state machine libraries, software and resources.
+- [Iterator trait](https://doc.rust-lang.org/std/iter/trait.Iterator.html): The official documentation for the `Iterator` trait.
+- [Lifetimes in Rust](https://doc.rust-lang.org/rust-by-example/scope/lifetime.html)
+- [Finite Automata](./finite_automata.md) in this guide!
+- [Rust's Strings](https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356): A comprehensive guide to Rust's strings.
+
+**Todo**:
+- [ ] [Parsing and Syntax Analysis](./parsing_and_syntax_analysis.md)
+- [ ] [Semantic Analysis](./semantic_analysis.md)

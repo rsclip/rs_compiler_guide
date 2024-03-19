@@ -19,3 +19,10 @@ This chapter will cover the following topics:
 - [EBNF](https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf): The official ISO standard for EBNF.
 - [EBNF](https://www.cs.uic.edu/~liub/teach/cs494/ebnf.pdf): A more concise and readable resource on EBNF.
 - [Intro to Programming Languages/Grammars](https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars): A Wikibooks page on grammars.
+- [Recursive Descent Parsing](https://en.wikipedia.org/wiki/Recursive_descent_parser) on Wikipedia
+- [RDP Visualizer](https://maeyler.github.io/Automata-2018/cfg/Bilal_RecursiveDescentParser.html) - A visualizer for recursive descent parsers
+- [LL(k) Parsing](https://en.wikipedia.org/wiki/LL_parser) on Wikipedia
+- [LL(k) Parsing](https://www.cs.uaf.edu/~cs331/notes/FirstFollow.pdf) on University of Alaska Fairbanks
+- [LL(k) Parser](https://github.com/GabrielMajeri/LL-K-Parser): A Python implementation of an LL(k) parser
+- [LR Parsing](https://en.wikipedia.org/wiki/LR_parser) on Wikipedia
+- [LR Parsing GfG](https://www.geeksforgeeks.org/lr-parser/): GeeksforGeeks article on LR Parsing
