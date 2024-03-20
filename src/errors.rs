@@ -18,7 +18,7 @@ pub enum LangError {
     #[error("Unterminated string")]
     UnterminatedString(Span),
     // Was expecting a particular token, found another
-    #[error("Expected token: `{expected}`, found: `{found}`")]
+    #[error("Expected token: {expected}, found: `{found}`")]
     ExpectedToken {
         expected: TokenKind,
         found: TokenKind,
@@ -26,7 +26,7 @@ pub enum LangError {
     },
     // Was expecting any of the tokens, found another
     #[error(
-        "Expected any of the tokens: `{}`, found: `{found}`",
+        "Expected any of the tokens: {}, found: `{found}`",
         LangError::any_tokens_display(expected)
     )]
     ExpectedAnyToken {
@@ -78,7 +78,7 @@ impl LangError {
     fn any_tokens_display(tokens: &[TokenKind]) -> String {
         let mut s = String::new();
         for (i, token) in tokens.iter().enumerate() {
-            s.push_str(&format!("{:?}", token));
+            s.push_str(&format!("`{}`", token));
             if i < tokens.len() - 1 {
                 s.push_str(", ");
             }

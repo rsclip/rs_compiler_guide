@@ -273,7 +273,7 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Bool => write!(f, "bool"),
             TokenKind::Float => write!(f, "float"),
             TokenKind::Eof => write!(f, "EOF"),
-            TokenKind::Ident(id) => write!(f, "{}", id),
+            TokenKind::Ident(_) => write!(f, "Ident"),
             TokenKind::IntLiteral(_) => write!(f, "IntegerLiteral"),
             TokenKind::FloatLiteral(_) => write!(f, "FloatLiteral"),
             TokenKind::BoolLiteral(_) => write!(f, "BooleanLiteral"),

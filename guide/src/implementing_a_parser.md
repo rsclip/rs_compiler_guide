@@ -869,11 +869,23 @@ It seems to be working pretty well! One of the typical errors is forgetting a se
 
 ```rust,ignore
 fn main() -> int {
-    let a: int = 5 + 2;
+    let a: int = 5 + fn 2;
     let b: int = 6;
     let c: int = a + b;
-    return c // no semicolon </3
+    return c;
 }
+```
+
+With the same call, we get:
+```plaintext
+Error:
+   ╭─[tests/add.pyl:2:22]
+   │
+ 2 │     let a: int = 5 + fn 2;
+   │                      ─┬
+   │                       ╰── Expected any of the tokens: `IntegerLiteral`, `BooleanLiteral`, `Ident`, `(`, found: `fn`
+───╯
+Error: Failed to parse file
 ```
 
 # Resources

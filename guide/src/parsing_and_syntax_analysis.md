@@ -29,3 +29,5 @@ This chapter will cover the following topics:
 - [Operator Precedence](https://en.wikipedia.org/wiki/Operator-precedence_parser)
 - [Box<T>](https://doc.rust-lang.org/std/boxed/struct.Box.html)
 - [`Display` trait](https://doc.rust-lang.org/std/fmt/trait.Display.html)
+- [RefCell documentation](https://doc.rust-lang.org/std/cell/struct.RefCell.html)
+- [RefCell in book](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html)
