@@ -201,7 +201,7 @@ pub enum Statement {
     Expression(Box<Expression>),
     VariableDecl(VariableDecl),
     Flow(FlowStatement),
-    Return(Box<Expression>),
+    Return(Option<Box<Expression>>),
 }
 
 #[derive(Debug)]
@@ -292,6 +292,11 @@ pub enum BinaryOperator {
     And,
     Or,
 }
+
+pub enum UnaryOperator {
+    Negation,
+    Not,
+}
 ```
 
 **Operator Precedence** is a critical part of parsing expressions; they define the order in which operators are evaluated. For example, `*` has a higher precedence than `+`, so `2 + 3 * 4` should be parsed as `2 + (3 * 4)`. You may know this as BIDMAS, BODMAS, or PEMDAS.
@@ -351,7 +356,7 @@ pub enum PrimaryExpression {
     Literal(Literal),
     Ident(Ident),
     Parenthesized(Box<Expression>),
-    FunctionCall(String, Vec<Expression>),
+    FunctionCall(Ident, Vec<Expression>),
 }
 
 #[derive(Debug)]

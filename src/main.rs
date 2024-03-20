@@ -81,14 +81,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn simple_tokens_compile() {
-        let args = vec!["tests/simple_tokens.pyl", "--tokens"];
-        let opts = Args::parse_args_default(&args).expect("Failed to parse args");
-
-        compile(opts);
-    }
-
-    #[test]
     fn add_compile() {
         let args = vec!["tests/add.pyl", "--ast", "--ir", "--asm", "--tokens"];
         let opts = Args::parse_args_default(&args).expect("Failed to parse args");

@@ -117,10 +117,12 @@ impl LangError {
 
 impl<'a> ErrorReporter<'a> {
     pub fn new(files: &'a SimpleFiles<String, String>) -> Self {
+        let config = codespan_reporting::term::Config::default();
+
         Self {
             files,
             writer: StandardStream::stderr(ColorChoice::Always),
-            config: codespan_reporting::term::Config::default(),
+            config,
         }
     }
 

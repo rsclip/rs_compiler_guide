@@ -10,7 +10,7 @@ pub enum PrimaryExpression {
     Literal(Literal),
     Ident(Ident),
     Parenthesized(Box<Expression>),
-    FunctionCall(String, Vec<Expression>),
+    FunctionCall(Ident, Vec<Expression>),
 }
 
 #[derive(Debug)]
@@ -36,7 +36,7 @@ impl PrettyPrint for PrimaryExpression {
             PrimaryExpression::FunctionCall(i, args) => format!(
                 "{:indent$}FunctionCall {}({})\n",
                 "",
-                i,
+                i.ident,
                 args.iter()
                     .map(|a| a.pretty_print(indent))
                     .collect::<Vec<String>>()

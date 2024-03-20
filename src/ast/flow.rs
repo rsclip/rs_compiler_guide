@@ -5,7 +5,7 @@ pub enum Statement {
     Expression(Box<Expression>),
     VariableDecl(VariableDecl),
     Flow(FlowStatement),
-    Return(Box<Expression>),
+    Return(Option<Box<Expression>>),
 }
 
 #[derive(Debug)]
@@ -29,9 +29,11 @@ impl PrettyPrint for Statement {
             Statement::VariableDecl(v) => v.pretty_print(indent),
             Statement::Flow(f) => f.pretty_print(indent),
             Statement::Return(e) => format!(
-                "{:indent$}Return\n{}\n",
+                "{:indent$}Return\n{}",
                 "",
-                e.pretty_print(indent + 1),
+                e.as_ref()
+                    .map(|e| e.pretty_print(indent + 1))
+                    .unwrap_or_else(|| "".to_string()),
                 indent = indent * 4
             ),
         }

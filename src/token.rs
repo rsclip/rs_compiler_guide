@@ -2,7 +2,7 @@
 
 use std::hash::{Hash, Hasher};
 
-use crate::ast::BinaryOperator;
+use crate::ast::{BinaryOperator, UnaryOperator};
 
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Token {
@@ -125,6 +125,15 @@ impl TokenKind {
             TokenKind::Greater => Some(BinaryOperator::GreaterThan),
             TokenKind::LessEquals => Some(BinaryOperator::LessThanOrEqual),
             TokenKind::GreaterEquals => Some(BinaryOperator::GreaterThanOrEqual),
+            _ => None,
+        }
+    }
+
+    /// Convert to unary operator
+    pub fn as_unary_operator(&self) -> Option<UnaryOperator> {
+        match self {
+            TokenKind::Bang => Some(UnaryOperator::Not),
+            TokenKind::Minus => Some(UnaryOperator::Negate),
             _ => None,
         }
     }

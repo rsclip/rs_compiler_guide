@@ -247,11 +247,10 @@ This is straightforward to define:
 block             ::= "{" statement* "}"
 
 statement         ::= expression
-                    | variable_decl ";"
+                    | variable_decl
                     | flow_statement
+                    | return_statement
 ```
-
-Notice expressions don't end with a semicolon, but variable declarations do.
 
 Expressions are a bit more complex, as they can be composed of other expressions. We'll define them later. Let's focus on variable declarations and control flow statements.
 
@@ -261,7 +260,7 @@ let x: int = 5;
 ```
 
 ```ebnf
-variable_decl     ::= "let" IDENTIFIER ":" type "=" expression
+variable_decl     ::= "let" IDENTIFIER ":" type "=" expression ";"
 ```
 
 Control flow statements would consist of a few tokens: `if`, `else`, `return`. This is a bit tricky to design, as it can be recursive. Let's design it!
@@ -291,6 +290,13 @@ One big flaw with this production rule is that it doesn't support an arbritary n
 flow_statement    ::= "if" expression block {"else" block | "else" flow_statement}
 ```
 Now, the `else` token can be a block or another `if` statement. We can repeat it as many times as we want.
+
+In this book, we will opt for a simple `if`-`else` statement, but you can expand it to support more complex constructs.
+
+For return statements, it's simple:
+```ebnf
+return_statement  ::= "return" {expression}
+```
 
 **Undefined**:
 - `expression`
@@ -363,8 +369,9 @@ primitive_type    ::= "int" | "float" | "bool"
 block             ::= "{" statement* "}"
 
 statement         ::= expression
-                    | variable_decl ";"
-                    | flow_statement ";"
+                    | variable_decl
+                    | flow_statement
+                    | return_statement
 
 
 expression        ::= primary_expression
@@ -385,10 +392,11 @@ binary_expression ::= expression OPERATOR expression
 function_call     ::= IDENTIFIER "(" arguments ")"
 arguments         ::= expression ("," expression)* | ε
 
-variable_decl     ::= "let" IDENTIFIER ":" type "=" expression
+variable_decl     ::= "let" IDENTIFIER ":" type "=" expression ";"
 
 flow_statement    ::= "if" expression block {"else" block}
-                    | "return" expression?
+
+return_statement  ::= "return" {expression} ";"
 ```
 
 This is a simple grammar that supports the basic constructs of our language. It's not complete, but it's a good starting point. We can always expand it to support more complex constructs and language features.

@@ -17,6 +17,11 @@ pub enum BinaryOperator {
     Or,
 }
 
+pub enum UnaryOperator {
+    Negate,
+    Not,
+}
+
 impl BinaryOperator {
     /// Get the precedence of the operator
     pub fn precedence(&self) -> u8 {
@@ -30,6 +35,15 @@ impl BinaryOperator {
             | BinaryOperator::GreaterThanOrEqual => 4,
             BinaryOperator::Add | BinaryOperator::Subtract => 5,
             BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulus => 6,
+        }
+    }
+}
+
+impl PrettyPrint for UnaryOperator {
+    fn pretty_print(&self, _indent: usize) -> String {
+        match self {
+            UnaryOperator::Negate => "Negate ".to_string(),
+            UnaryOperator::Not => "Not ".to_string(),
         }
     }
 }

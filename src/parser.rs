@@ -34,18 +34,10 @@ impl Parser {
 
     /// Get current token
     /// Raises an error if at EOF
-    /// Same as peeking
     fn current_or_eof(&self) -> Result<&Token> {
-        self.current().ok_or_else(|| anyhow!(self.eof_error()))
-    }
-
-    /// Assert not at EOF or empty token at current position
-    fn assert_not_eof(&self) -> Result<()> {
-        if self.current().is_none() {
-            Err(anyhow!(self.eof_error()))
-        } else {
-            Ok(())
-        }
+        self.current()
+            .filter(|token| token.kind != TokenKind::Eof)
+            .ok_or_else(|| anyhow!(self.eof_error()))
     }
 
     /// Get the last token and return an EOF error
@@ -96,7 +88,6 @@ impl Parser {
 
     /// Parse a single item
     fn item(&mut self) -> Result<Item> {
-        self.assert_not_eof()?;
         let current = self.current_or_eof()?;
 
         let item = match current.kind {
@@ -299,16 +290,18 @@ impl Parser {
         // block
         let if_block = self.block()?;
 
-        // "else"
-        self.expect(TokenKind::Else)?;
-
-        // block
-        let else_block = self.block()?;
+        // may be else, may be not
+        let else_block = if self.current_or_eof()?.kind == TokenKind::Else {
+            self.advance();
+            Some(self.block()?)
+        } else {
+            None
+        };
 
         let stmt = Statement::Flow(FlowStatement {
             condition,
             if_block,
-            else_block: Some(else_block),
+            else_block,
         });
 
         println!("Parsed flow statement: {:#?}", stmt);
@@ -322,13 +315,17 @@ impl Parser {
         // "return"
         self.expect(TokenKind::Return)?;
 
-        // expression
-        let expression = self.expression()?;
-
-        let stmt = Statement::Return(Box::new(expression));
+        // expression or not
+        let expression = if self.current_or_eof()?.kind != TokenKind::Semicolon {
+            Some(Box::new(self.expression()?))
+        } else {
+            None
+        };
 
         // ";"
         self.expect(TokenKind::Semicolon)?;
+
+        let stmt = Statement::Return(expression);
 
         println!("Parsed return statement: {:#?}", stmt);
 
@@ -363,6 +360,22 @@ impl Parser {
             // Parse the right-hand side expression
             let rhs = self.primary()?;
 
+            // Handle unary operators
+            while let Some(unary_op) = self.current_or_eof()?.kind.as_unary_operator() {
+                // Consume the operator token
+                self.advance();
+
+                // Parse the right-hand side expression
+                let rhs = self.primary()?;
+
+                let unary_expression = match unary_op {
+                    UnaryOperator::Negate => UnaryExpression::Negation(Box::new(rhs)),
+                    UnaryOperator::Not => UnaryExpression::Not(Box::new(rhs)),
+                };
+
+                expr = Expression::Unary(unary_expression);
+            }
+
             // Parse binary expression
             expr = Expression::Binary(BinaryExpression {
                 lhs: Box::new(expr),
@@ -385,7 +398,19 @@ impl Parser {
             }
             TokenKind::Ident(_) => {
                 let ident = self.ident()?;
-                Ok(Expression::Primary(PrimaryExpression::Ident(ident)))
+
+                // if the next token is a "(", then it's a function call
+                if self.current_or_eof()?.kind == TokenKind::LParen {
+                    self.advance();
+                    let args = self.expression_list()?;
+                    self.expect(TokenKind::RParen)?;
+
+                    Ok(Expression::Primary(PrimaryExpression::FunctionCall(
+                        ident, args,
+                    )))
+                } else {
+                    Ok(Expression::Primary(PrimaryExpression::Ident(ident)))
+                }
             }
             TokenKind::LParen => {
                 self.advance();
@@ -426,6 +451,22 @@ impl Parser {
                 span: self.current_or_eof()?.span.clone(),
             })),
         }
+    }
+
+    fn expression_list(&mut self) -> Result<Vec<Expression>> {
+        println!("Parsing expression list");
+
+        let mut args = Vec::new();
+        while self.current_or_eof()?.kind != TokenKind::RParen {
+            let arg = self.expression()?;
+            args.push(arg);
+
+            if self.current_or_eof()?.kind == TokenKind::Comma {
+                self.advance();
+            }
+        }
+
+        Ok(args)
     }
 
     // ====================
