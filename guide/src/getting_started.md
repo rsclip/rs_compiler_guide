@@ -15,7 +15,7 @@ There are some crates (libraries) we can install to make the development process
 **Errors**  
 [anyhow](https://crates.io/crates/anyhow) is a great crate for propagating errors idiomatically.
 [thiserror](https://crates.io/crates/thiserror) will help us to implement our own error enums.
-For our error messages, this guide will [codespan-reporting](https://crates.io/crates/codespan_reporting) for its pretty errors and simple interface. Alternatively (and probably better), [ariadne](https://crates.io/crates/ariadne) produces better diagnostics.
+For our error messages, this guide will use [ariadne](https://crates.io/crates/ariadne) for error diagnostics. Alternatively, you can use [codespan-reporting](https://crates.io/crates/codespan_reporting) (implemented in [Error Handling with codespan-reporting](./error_handling_with_codespan_reporting.md)).
 
 **CLI Parsing**  
 This guide will use [gumdrop](https://crates.io/crates/gumdrop) since our compiler will be incredibly simplistic, and its much faster than [clap](https://crates.io/crates/clap) (although that's a great alternative, albeit relatively slow and large).

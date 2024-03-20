@@ -3,6 +3,8 @@
 - [Introduction](./introduction.md)
 - [Getting Started](./getting_started.md)
 - [Error Handling](./error_handling.md)
+    - [Error Handling with ariadne](./error_handling_with_ariadne.md)
+    - [Error Handling with codespan-reporting](./error_handling_with_codespan_reporting.md)
 - [Lexical Analysis](./lexical_analysis.md)
     - [Finite Automata](./finite_automata.md)
     - [Tokens](./tokens.md)
