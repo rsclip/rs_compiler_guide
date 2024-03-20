@@ -2,21 +2,19 @@
 //! Called through args
 
 use anyhow::Result;
-use std::collections::HashMap;
+use ariadne::Cache;
 use std::path::Path;
-
-use codespan_reporting::files::SimpleFiles;
 
 use crate::ast::AST;
 use crate::errors::ErrorReporter;
+use crate::files::Files;
 use crate::lexer;
 use crate::parser::Parser;
 use crate::token::Token;
 
 pub struct Compiler {
-    files: SimpleFiles<String, String>,
+    files: Files,
     main_file: String,
-    imports: HashMap<String, usize>,
     options: CompilerOptions,
 }
 
@@ -31,9 +29,8 @@ pub struct CompilerOptions {
 impl Compiler {
     pub fn new(options: CompilerOptions) -> Self {
         Self {
-            files: SimpleFiles::new(),
+            files: Files::new(),
             main_file: String::new(),
-            imports: HashMap::new(),
             options,
         }
     }
@@ -53,8 +50,7 @@ impl Compiler {
 
     /// Add source code to the compiler
     pub fn add_source(&mut self, path: String, source: String) {
-        let file_id = self.files.add(path.clone(), source);
-        self.imports.insert(path.clone(), file_id);
+        self.files.add_file(path.clone(), source);
 
         if self.main_file.is_empty() {
             self.main_file = path;
@@ -79,24 +75,24 @@ impl Compiler {
     }
 
     fn compile_file(&mut self, file_path: String) -> Result<()> {
-        let file_id = self.imports.get(&file_path).unwrap().clone();
-
         println!("Tokenizing: {}", &file_path);
-        let tokens = self.lex_file(file_id)?;
+        let tokens = self.lex_file(file_path.clone())?;
 
         println!("Parsing: {}", &file_path);
-        let _program = self.parse_tokens(tokens, file_id)?;
+        let _program = self.parse_tokens(tokens, file_path)?;
 
         Ok(())
     }
 
-    fn parse_tokens(&mut self, stream: Vec<Token>, file_id: usize) -> Result<AST> {
+    fn parse_tokens<'f>(&mut self, stream: Vec<Token>, file_id: String) -> Result<AST> {
         let mut parser = Parser::new(stream);
-        let ast = match parser.parse(file_id) {
+        let ast = match parser.parse(file_id.clone()) {
             Ok(program) => program,
             Err(err) => {
-                let reporter = ErrorReporter::new(&self.files);
-                reporter.report(file_id, &err)?;
+                let mut reporter = ErrorReporter::new(&mut self.files);
+                reporter
+                    .report(file_id, &err)
+                    .expect("Failed to report error");
                 return Err(anyhow::anyhow!("Failed to parse file"));
             }
         };
@@ -109,10 +105,13 @@ impl Compiler {
         Ok(ast)
     }
 
-    fn lex_file(&self, file_id: usize) -> Result<Vec<Token>> {
-        let simple_file = self.files.get(file_id)?;
+    fn lex_file<'f>(&mut self, file_id: String) -> Result<Vec<Token>> {
+        let src = self.files.fetch(&file_id).unwrap();
 
-        let lexer = lexer::Lexer::new(simple_file.source());
+        // load source into string
+        let src: String = src.chars().collect();
+
+        let lexer = lexer::Lexer::new(&src);
         let (tokens, errors) = lexer::consume_lexer(lexer);
 
         if self.options.print_tokens {
@@ -122,10 +121,12 @@ impl Compiler {
         }
 
         if !errors.is_empty() {
-            let reporter = ErrorReporter::new(&self.files);
+            let mut reporter = ErrorReporter::new(&mut self.files);
 
             for err in errors {
-                reporter.report(file_id, &err)?;
+                reporter
+                    .report(file_id.clone(), &err)
+                    .expect("Failed to report error");
             }
 
             Err(anyhow::anyhow!("Failed to lex file"))

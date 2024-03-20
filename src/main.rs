@@ -1,8 +1,9 @@
 extern crate anyhow;
-extern crate codespan_reporting;
+extern crate ariadne;
 extern crate gumdrop;
 extern crate thiserror;
 
+pub mod files;
 pub mod errors;
 pub mod lexer;
 pub mod token;

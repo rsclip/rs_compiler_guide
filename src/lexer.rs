@@ -251,10 +251,8 @@ pub fn pretty_print_tokens(tokens: &Vec<Token>) {
 
 #[cfg(test)]
 mod tests {
-    use codespan_reporting::files::SimpleFiles;
-
     use super::*;
-    use crate::errors::ErrorReporter;
+    use crate::{errors::ErrorReporter, files::Files};
 
     #[test]
     fn lex_general() {
@@ -270,20 +268,20 @@ mod tests {
         let src = "if name == 335.333.2 { return true; }";
         let lexer = Lexer::new(src);
 
-        let mut files = SimpleFiles::new();
-        let file_id = files.add("test".to_string(), src.to_string());
+        let mut files = Files::new();
+        let filename = "test".to_string();
+        files.add_file(filename.clone(), src.to_string());
 
         let (tokens, errors) = consume_lexer(lexer);
 
         assert_eq!(tokens.len(), 8);
         assert_eq!(errors.len(), 1);
 
-        let reporter = ErrorReporter::new(&mut files);
+        let mut reporter = ErrorReporter::new(&mut files);
 
-        // display anyhow errors
         for err in errors {
             reporter
-                .report(file_id, &err)
+                .report(filename.clone(), &err)
                 .expect("Failed to report error");
         }
     }
@@ -293,7 +291,7 @@ mod tests {
         let src = "fn add(a: int, b: int) -> int { return a + b; }";
         let lexer = Lexer::new(src);
         let (tokens, errors) = consume_lexer(lexer);
-        
+
         pretty_print_tokens(&tokens);
 
         assert_eq!(errors.len(), 0);

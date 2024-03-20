@@ -7,7 +7,7 @@ pub fn pretty_print_ast(ast: &AST) {
 #[derive(Debug)]
 pub struct AST {
     pub program: Program,
-    pub file_id: usize,
+    pub file_id: String,
 }
 
 #[derive(Debug)]

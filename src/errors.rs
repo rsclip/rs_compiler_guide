@@ -1,12 +1,10 @@
 //! Contains the error types used in the library while parsing and lexing.
 //! Used with `anyhow` to provide context to errors.
-//! 
-//! Should migrate to `ariadne` crate for better error handling and reporting.
 
-use crate::token::{Span, TokenKind};
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::SimpleFiles;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use crate::files::Files;
+use crate::token::{ReportableSpan, Span, TokenKind};
+use anyhow::{anyhow, Result};
+use ariadne::{Color, Label, Report, ReportKind};
 use thiserror::Error;
 
 /// The error type for the library
@@ -45,62 +43,36 @@ pub enum LangError {
 }
 
 pub struct ErrorReporter<'a> {
-    files: &'a SimpleFiles<String, String>,
-    writer: StandardStream,
-    config: codespan_reporting::term::Config,
+    files: &'a mut Files,
 }
 
 impl LangError {
     /// Produces a diagnostic for the error
-    pub fn diagnostic(&self, file_id: usize) -> Diagnostic<usize> {
-        let mut diagnostic = Diagnostic::error().with_message(self.to_string());
+    pub fn diagnostic(&self, file: String) -> Report<ReportableSpan> {
+        let span = self.span(file);
 
-        match self {
-            LangError::UnexpectedCharacter(ch, span) => {
-                diagnostic =
-                    diagnostic.with_labels(vec![Label::primary(file_id, span.start..span.end)
-                        .with_message(format!("Unexpected character: `{}`", ch))]);
-            }
-            LangError::UnterminatedString(span) => {
-                diagnostic =
-                    diagnostic.with_labels(vec![Label::primary(file_id, span.start..span.end)
-                        .with_message("Unterminated string")]);
-            }
-            LangError::ExpectedToken {
-                expected,
-                found,
-                span,
-            } => {
-                diagnostic =
-                    diagnostic.with_labels(vec![Label::primary(file_id, span.start..span.end)
-                        .with_message(format!("Expected: `{}`, found: `{}`", expected, found))]);
-            }
-            LangError::ExpectedAnyToken {
-                expected,
-                found,
-                span,
-            } => {
-                diagnostic =
-                    diagnostic.with_labels(vec![Label::primary(file_id, span.start..span.end)
-                        .with_message(format!(
-                            "Expected any of: `{}`, found: `{}`",
-                            LangError::any_tokens_display(expected),
-                            found
-                        ))]);
-            }
-            LangError::UnexpectedEOF(span) => {
-                diagnostic =
-                    diagnostic.with_labels(vec![Label::primary(file_id, span.start..span.end)
-                        .with_message("Unexpected EOF")]);
-            }
-            LangError::InvalidLiteral(_, span) => {
-                diagnostic =
-                    diagnostic.with_labels(vec![Label::primary(file_id, span.start..span.end)
-                        .with_message("Invalid literal")]);
-            }
-        };
+        let label = Label::new(span.clone())
+            .with_message(self.to_string())
+            .with_color(Color::Red);
 
-        diagnostic
+        Report::build(ReportKind::Error, self.to_string(), span.start)
+            .with_label(label)
+            .finish()
+    }
+
+    /// Get the span of the error
+    pub fn span(&self, file: String) -> ReportableSpan {
+        ReportableSpan::new(
+            file,
+            match self {
+                LangError::UnexpectedCharacter(_, span) => span,
+                LangError::UnterminatedString(span) => span,
+                LangError::ExpectedToken { span, .. } => span,
+                LangError::ExpectedAnyToken { span, .. } => span,
+                LangError::UnexpectedEOF(span) => span,
+                LangError::InvalidLiteral(_, span) => span,
+            },
+        )
     }
 
     fn any_tokens_display(tokens: &[TokenKind]) -> String {
@@ -116,37 +88,21 @@ impl LangError {
 }
 
 impl<'a> ErrorReporter<'a> {
-    pub fn new(files: &'a SimpleFiles<String, String>) -> Self {
-        let config = codespan_reporting::term::Config::default();
-
-        Self {
-            files,
-            writer: StandardStream::stderr(ColorChoice::Always),
-            config,
-        }
+    pub fn new(files: &'a mut Files) -> Self {
+        Self { files }
     }
 
-    pub fn report(&self, file_id: usize, error: &anyhow::Error) -> anyhow::Result<()> {
-        let diagnostic = if let Some(lang_error) = error.downcast_ref::<LangError>() {
-            lang_error.diagnostic(file_id)
-        } else {
-            Diagnostic::error().with_message(error.to_string())
+    pub fn report(&mut self, file: String, error: &anyhow::Error) -> Result<()> {
+        let diagnostic = match error.downcast_ref::<LangError>() {
+            Some(e) => e.diagnostic(file),
+            None => {
+                return Err(anyhow!("Unknown error: {}", error));
+            }
         };
 
-        codespan_reporting::term::emit(
-            &mut self.writer.lock(),
-            &self.config,
-            self.files,
-            &diagnostic,
-        )?;
-
-        Ok(())
-    }
-
-    pub fn report_all(&self, errors: Vec<(usize, &anyhow::Error)>) -> anyhow::Result<()> {
-        for (file_id, error) in errors {
-            self.report(file_id, error)?;
+        match diagnostic.eprint(&mut self.files) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(anyhow!("Failed to print diagnostic: {}", e)),
         }
-        Ok(())
     }
 }

@@ -474,7 +474,7 @@ impl Parser {
     // ====================
 
     /// Parse the token stream into an AST
-    pub fn parse(&mut self, file_id: usize) -> Result<AST> {
+    pub fn parse(&mut self, file_id: String) -> Result<AST> {
         let program = self.program()?;
         Ok(AST { program, file_id })
     }

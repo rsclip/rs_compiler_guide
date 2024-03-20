@@ -313,3 +313,38 @@ impl Hash for TokenKind {
         }
     }
 }
+
+/// Ariadne-compatible span
+/// To be generated on-the-fly.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReportableSpan {
+    pub file: String,
+    pub start: usize,
+    pub end: usize,
+}
+
+impl ReportableSpan {
+    pub fn new(file: String, span: &Span) -> Self {
+        Self {
+            file,
+            start: span.start,
+            end: span.end,
+        }
+    }
+}
+
+impl ariadne::Span for ReportableSpan {
+    type SourceId = String;
+
+    fn source(&self) -> &Self::SourceId {
+        &self.file
+    }
+
+    fn start(&self) -> usize {
+        self.start
+    }
+
+    fn end(&self) -> usize {
+        self.end
+    }
+}
