@@ -189,6 +189,15 @@ impl PrimaryExpression {
             }
         }
     }
+
+    pub fn idents_used(&self) -> Vec<Ident> {
+        match self {
+            PrimaryExpression::Literal(_) => vec![],
+            PrimaryExpression::Ident(i) => vec![i.clone()],
+            PrimaryExpression::Parenthesized(p) => p.idents_used(),
+            PrimaryExpression::FunctionCall(_, args) => args.iter().flat_map(|a| a.idents_used()).collect(),
+        }
+    }
 }
 
 impl Analysis for PrimaryExpression {

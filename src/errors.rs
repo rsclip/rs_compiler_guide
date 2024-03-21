@@ -120,6 +120,17 @@ pub enum SemanticError {
     },
 }
 
+#[derive(Debug, Error)]
+pub enum Warning {
+    #[error("Unused variable")]
+    UnusedVariable(Ident, Span),
+
+    #[error("Unused function")]
+    UnusedFunction(Ident, Span),
+
+    #[error("Unreachable code")]
+    UnreachableCode(Span),
+}
 pub struct ErrorReporter<'a> {
     files: &'a mut Files,
 }
@@ -360,16 +371,74 @@ impl SemanticError {
     }
 }
 
+impl Warning {
+    pub fn diagnostic(&self, file: String) -> Report<ReportableSpan> {
+        let span = self.first_span(&file);
+
+        let labels = self.get_labels(&file);
+
+        let mut builder = Report::build(ReportKind::Warning, file, span.start)
+            .with_message(self.to_string())
+            .with_labels(labels);
+
+        if let Some(help) = self.help() {
+            builder = builder.with_help(help);
+        }
+
+        builder.finish()
+    }
+
+    fn help(&self) -> Option<String> {
+        match self {
+            Warning::UnusedVariable(ident, _) => Some(format!("if intended, prefix with an underscore: `_{ident}`")),
+            _ => None,
+        }
+    }
+
+    /// First span of error
+    pub fn first_span(&self, file: &String) -> ReportableSpan {
+        ReportableSpan::new(
+            file.clone(),
+            match self {
+                Warning::UnusedVariable(_, span) => span,
+                Warning::UnusedFunction(_, span) => span,
+                Warning::UnreachableCode(span) => span,
+            },
+        )
+    }
+
+    fn get_labels(&self, file: &String) -> Vec<Label<ReportableSpan>> {
+        match self {
+            Warning::UnusedVariable(ref name, ref span) => {
+                vec![Label::new(ReportableSpan::new(file.clone(), span))
+                    .with_message(format!("{name} is never used"))
+                    .with_color(TERT_COLOR)]
+            }
+            Warning::UnusedFunction(ref name, ref span) => {
+                vec![Label::new(ReportableSpan::new(file.clone(), span))
+                    .with_message(format!("{name} is never called"))
+                    .with_color(TERT_COLOR)]
+            }
+            Warning::UnreachableCode(ref span) => {
+                vec![Label::new(ReportableSpan::new(file.clone(), span))
+                    .with_message("code is unreachable")
+                    .with_color(TERT_COLOR)]
+            }
+        }
+    }
+}
+
 impl<'a> ErrorReporter<'a> {
     pub fn new(files: &'a mut Files) -> Self {
         Self { files }
     }
 
     pub fn report(&mut self, file: String, error: &anyhow::Error) -> Result<()> {
-        // try to downcast to either LangError or SemanticError
         let diagnostic = if let Some(e) = error.downcast_ref::<LangError>() {
             e.diagnostic(file)
         } else if let Some(e) = error.downcast_ref::<SemanticError>() {
+            e.diagnostic(file)
+        } else if let Some(e) = error.downcast_ref::<Warning>() {
             e.diagnostic(file)
         } else {
             return Err(anyhow!("Unknown error while downcasting: {}", error));

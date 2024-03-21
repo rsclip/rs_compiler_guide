@@ -1,4 +1,6 @@
-use crate::errors::SemanticError;
+use std::collections::HashMap;
+
+use crate::errors::{SemanticError, Warning};
 use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
 use anyhow::{anyhow, Error, Result};
@@ -69,6 +71,8 @@ impl Analysis for Block {
             errors.extend(statement.analyze(&mut new_table));
         }
 
+        errors.extend(self.check_dead_unreachable(&table));
+
         debug!("Block analysis complete, errors: {errors:?}");
 
         errors
@@ -76,6 +80,83 @@ impl Analysis for Block {
 }
 
 impl Block {
+    fn check_dead_unreachable(&self, table: &SymbolTable) -> Vec<Error> {
+        debug!("Checking for dead and unreachable in block: {self:?}, table: {table:?}");
+        let mut errors = Vec::new();
+        let mut tmp_my_table = SymbolTable::child(table);
+        
+        // map of variables declared in this scope, and whether they are used
+        let mut declared_vars: HashMap<Ident, bool> = HashMap::new();
+
+        let mut early_return = false;
+        for (cur_idx, statement) in self.statements.iter().enumerate() {
+            debug!("TO REMOVE: Checking statement: {statement:?}, cur_idx: {cur_idx}, early_return: {early_return}");
+            match statement {
+                Statement::Return(expr) => {
+                    if early_return { continue; }
+
+                    early_return = cur_idx + 1 != self.statements.len();
+                    let idents_used = expr
+                        .as_ref()
+                        .map(|e| e.idents_used())
+                        .unwrap_or_default();
+
+                    for ident in &idents_used {
+                        if let Some(declared) = declared_vars.get_mut(&ident) {
+                            *declared = true;
+                        }
+                    }
+
+                    debug!("Found return statement at {cur_idx}, early_return: {early_return}, idents_used: {idents_used:?}, stmt: {statement:?}");
+                }
+                Statement::VariableDecl(v) => {
+                    if let Err(e) = tmp_my_table.add_var(v) {
+                        warn!("Error adding variable to table: {:?}, {:?}", statement, e);
+                    }
+                    declared_vars.insert(v.ident.clone(), false);
+                }
+                Statement::Flow(flow) => {
+                    if early_return { continue; }
+
+                    let (_, if_guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
+
+                    if let Some(else_block) = &flow.else_block {
+                        let (_, else_guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
+                        // in the case where both blocks have a return statement
+                        // we can guarantee a return
+                        if if_guaranteed && else_guaranteed {
+                            early_return = true;
+                            debug!("Found early return");
+                            break;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        };
+
+        if early_return {
+            // get span of unreachable code
+            let span = Span::combine(
+                &self.statements.first().map(|s| s.span()).unwrap_or(self.span.clone()),
+                &self.statements.last().map(|s| s.span()).unwrap_or(self.span.clone()),
+            );
+
+            errors.push(anyhow!(Warning::UnreachableCode(span)));
+        };
+
+        for (ident, declared) in declared_vars {
+            if !declared && !ident.ident.starts_with("_"){
+                warn!("Unused variable: {:?}", ident);
+                errors.push(anyhow!(Warning::UnusedVariable(ident.clone(), ident.span.clone())));
+            }
+        }
+
+        debug!("Dead and unreachable check complete, errors: {errors:?}");
+
+        errors
+    }
+
     /// Explore for all return statements
     /// Return:
     /// 1. The return value **types**
@@ -153,6 +234,14 @@ impl Expression {
             Expression::Primary(p) => p.get_type(table),
             Expression::Unary(u) => u.get_type(table),
             Expression::Binary(b) => b.get_type(table),
+        }
+    }
+
+    pub fn idents_used(&self) -> Vec<Ident> {
+        match self {
+            Expression::Primary(p) => p.idents_used(),
+            Expression::Unary(u) => u.idents_used(),
+            Expression::Binary(b) => b.idents_used(),
         }
     }
 }

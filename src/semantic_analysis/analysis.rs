@@ -85,6 +85,11 @@ mod tests {
         }
     }
 
+    /// Filter warnings from semantic analysis
+    fn filter_warnings(errors: Vec<Error>) -> Vec<Error> {
+        errors.into_iter().filter(|e| e.downcast_ref::<crate::errors::Warning>().is_none()).collect()
+    }
+
     /// Print errors
     fn quick_errors(errors: &Vec<Error>, src: &str) {
         let mut files = crate::files::Files::new();
@@ -100,7 +105,7 @@ mod tests {
     fn test_missing_main() {
         let src = "fn foo() -> int {return 1;}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -113,7 +118,7 @@ mod tests {
     fn test_main_found() {
         let src = "fn main() -> int {return 0;}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         assert_eq!(errors.len(), 0);
     }
@@ -122,7 +127,7 @@ mod tests {
     fn test_duplicate_main() {
         let src = "fn main() -> int {return 0;}\n\nfn main() -> int {return 1;}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -135,7 +140,7 @@ mod tests {
     fn test_duplicate_var() {
         let src = "fn main() -> int { let x: int = 5; let x: int = 10; return y; }";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -148,7 +153,7 @@ mod tests {
     fn test_no_return() {
         let src = "fn main() -> int {}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -161,7 +166,7 @@ mod tests {
     fn test_if() {
         let src = "fn main() -> int {if 1 == 1 { return 5; }}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -172,7 +177,7 @@ mod tests {
     fn undeclared_var() {
         let src = "fn main() -> int { let x:int = 3; return x; }";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
     }
@@ -181,7 +186,7 @@ mod tests {
     fn incompatible_return_type() {
         let src = "fn main() -> int {\n\treturn 5;\n}\nfn foo() -> bool {\n\treturn 5;\n}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -194,7 +199,7 @@ mod tests {
     fn incompatible_return_type_var() {
         let src = "fn main() -> int {\n\treturn 5;\n}\nfn foo() -> bool {\n\tlet x: int = 5;\n\treturn x;\n}";
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -212,7 +217,7 @@ mod tests {
             }
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -232,7 +237,7 @@ mod tests {
             }
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -249,7 +254,7 @@ mod tests {
             }
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -269,7 +274,7 @@ mod tests {
             return 6;
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -291,7 +296,7 @@ mod tests {
             }
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -305,7 +310,7 @@ mod tests {
             return x;
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -322,7 +327,7 @@ mod tests {
             return 1;
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -339,7 +344,7 @@ mod tests {
             return 1;
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -357,7 +362,7 @@ mod tests {
             return x;
         }"#;
         let ast = quick_parse(src);
-        let errors = analyse(&ast);
+        let errors = filter_warnings(analyse(&ast));
 
         quick_errors(&errors, src);
 
@@ -375,10 +380,54 @@ mod tests {
             return x;
         }"#;
         let ast = quick_parse(src);
+        let errors = filter_warnings(analyse(&ast));
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+    }
+
+    #[test]
+    fn dead_code() {
+        let src = r#"fn main() -> int {
+            return 2;
+            let x: int = 5;
+            return 121212;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 2);
+    }
+
+    #[test]
+    fn dead_code_2() {
+        // underscore prevents unused variable warning
+        let src = r#"fn main() -> int {
+            return 2;
+            let _x: int = 5;
+        }"#;
+        let ast = quick_parse(src);
         let errors = analyse(&ast);
 
         quick_errors(&errors, src);
 
         assert_eq!(errors.len(), 1);
+    }
+
+    #[test]
+    fn dead_code_3() {
+        let src = r#"fn main() -> int {
+            let x: int = 5;
+            return x;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 0);
     }
 }

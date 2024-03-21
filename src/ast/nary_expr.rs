@@ -140,6 +140,13 @@ impl UnaryExpression {
 
         expr.get_type(table)
     }
+
+    pub fn idents_used(&self) -> Vec<Ident> {
+        match &self.kind {
+            UnaryExpressionKind::Negation(e) => e.idents_used(),
+            UnaryExpressionKind::Not(e) => e.idents_used(),
+        }
+    }
 }
 
 impl Analysis for UnaryExpression {
@@ -253,6 +260,12 @@ impl BinaryExpression {
                 }
             }
         }
+    }
+
+    pub fn idents_used(&self) -> Vec<Ident> {
+        let mut idents = self.lhs.idents_used();
+        idents.extend(self.rhs.idents_used());
+        idents
     }
 }
 
