@@ -2,7 +2,7 @@
 
 use crate::ast::*;
 use crate::errors::LangError;
-use crate::token::{Token, TokenKind};
+use crate::token::{Span, Token, TokenKind};
 use anyhow::{anyhow, Result};
 use std::cell::RefCell;
 
@@ -138,11 +138,14 @@ impl Parser {
         // block
         let block = self.block()?;
 
+        let span = Span::combine(&ident.span, &block.span);
+
         let func = FunctionDecl {
             ident,
             parameters: params,
             ty,
             block,
+            span,
         };
 
         println!("Parsed function: {:#?}", func);
@@ -153,11 +156,16 @@ impl Parser {
     fn ident(&mut self) -> Result<Ident> {
         println!("Parsing ident (no-end)");
 
-        match self.current_or_eof()?.kind {
+        let current = self.current_or_eof()?;
+
+        match current.kind {
             TokenKind::Ident(ref ident) => {
                 let ident = ident.clone();
                 self.advance();
-                Ok(Ident { ident })
+                Ok(Ident {
+                    ident,
+                    span: current.span.clone(),
+                })
             }
             _ => Err(anyhow!(LangError::ExpectedToken {
                 expected: TokenKind::Ident("".to_string()),
@@ -179,7 +187,9 @@ impl Parser {
         // type
         let ty = self.type_()?;
 
-        let param = Parameter { ident, ty };
+        let span = Span::combine(&ident.span, &ty.span());
+
+        let param = Parameter { ident, ty, span };
 
         println!("Parsed parameter: {:#?}", param);
 
@@ -192,11 +202,17 @@ impl Parser {
         match self.current_or_eof()?.kind {
             TokenKind::Int => {
                 self.advance();
-                Ok(Type::Primitive(PrimitiveType::Int))
+                Ok(Type::Primitive(PrimitiveType {
+                    kind: PrimitiveKind::Int,
+                    span: self.current_or_eof()?.span.clone(),
+                }))
             }
             TokenKind::Bool => {
                 self.advance();
-                Ok(Type::Primitive(PrimitiveType::Bool))
+                Ok(Type::Primitive(PrimitiveType {
+                    kind: PrimitiveKind::Bool,
+                    span: self.current_or_eof()?.span.clone(),
+                }))
             }
             _ => Err(anyhow!(LangError::ExpectedAnyToken {
                 expected: vec![TokenKind::Int, TokenKind::Bool,],
@@ -209,6 +225,8 @@ impl Parser {
     fn block(&mut self) -> Result<Block> {
         println!("Parsing block");
 
+        let start_span = self.current_or_eof()?.span.clone();
+
         // "{"
         self.expect(TokenKind::LBrace)?;
 
@@ -218,10 +236,14 @@ impl Parser {
             statements.push(statement);
         }
 
+        let end_span = self.current_or_eof()?.span.clone();
+
         // "}"
         self.expect(TokenKind::RBrace)?;
 
-        let block = Block { statements };
+        let span = Span::combine(&start_span, &end_span);
+
+        let block = Block { statements, span };
 
         println!("Parsed block: {:#?}", block);
 
@@ -247,7 +269,7 @@ impl Parser {
         println!("Parsing variable decl");
 
         // "let"
-        self.expect(TokenKind::Let)?;
+        let start_span = self.expect(TokenKind::Let)?.span.clone();
 
         // IDENTIFIER
         let ident = self.ident()?;
@@ -264,10 +286,13 @@ impl Parser {
         // expression
         let expression = self.expression()?;
 
+        let span = Span::combine(&start_span, &expression.span());
+
         let var_decl = Statement::VariableDecl(VariableDecl {
             ident,
             ty,
             expression,
+            span,
         });
 
         // ";"
@@ -282,7 +307,7 @@ impl Parser {
         println!("Parsing flow statement");
 
         // "if"
-        self.expect(TokenKind::If)?;
+        let start_span = self.expect(TokenKind::If)?.span.clone();
 
         // condition
         let condition = self.expression()?;
@@ -298,10 +323,17 @@ impl Parser {
             None
         };
 
+        let span = if let Some(else_block) = &else_block {
+            Span::combine(&start_span, &else_block.span)
+        } else {
+            Span::combine(&start_span, &if_block.span)
+        };
+
         let stmt = Statement::Flow(FlowStatement {
             condition,
             if_block,
             else_block,
+            span,
         });
 
         println!("Parsed flow statement: {:#?}", stmt);
@@ -344,7 +376,7 @@ impl Parser {
         println!("Parsing expression");
         let mut expr = self.primary()?;
 
-        while let Some(op) = self.current_or_eof()?.kind.as_binary_operator() {
+        while let Some(op) = self.current_or_eof()?.as_bin_op() {
             let op_precedence = op.precedence();
 
             // Check if the operator precedence is higher than the previous operator
@@ -361,26 +393,39 @@ impl Parser {
             let rhs = self.primary()?;
 
             // Handle unary operators
-            while let Some(unary_op) = self.current_or_eof()?.kind.as_unary_operator() {
+            while let Some(unary_op) = self.current_or_eof()?.as_un_op() {
                 // Consume the operator token
                 self.advance();
 
                 // Parse the right-hand side expression
                 let rhs = self.primary()?;
 
-                let unary_expression = match unary_op {
-                    UnaryOperator::Negate => UnaryExpression::Negation(Box::new(rhs)),
-                    UnaryOperator::Not => UnaryExpression::Not(Box::new(rhs)),
+                // let unary_expression = match unary_op {
+                //     UnaryOperator::Negate => UnaryExpression::Negation(Box::new(rhs)),
+                //     UnaryOperator::Not => UnaryExpression::Not(Box::new(rhs)),
+                // };
+
+                let unary_span = Span::combine(&unary_op.span, &rhs.span());
+
+                let unary_expression = UnaryExpression {
+                    kind: match unary_op.kind {
+                        UnaryOperatorKind::Negate => UnaryExpressionKind::Negation(Box::new(rhs)),
+                        UnaryOperatorKind::Not => UnaryExpressionKind::Not(Box::new(rhs)),
+                    },
+                    span: unary_span,
                 };
 
-                expr = Expression::Unary(unary_expression);
+                expr = Expression::Unary(unary_expression)
             }
+
+            let span = Span::combine(&expr.span(), &rhs.span());
 
             // Parse binary expression
             expr = Expression::Binary(BinaryExpression {
                 lhs: Box::new(expr),
                 op: op,
                 rhs: Box::new(rhs),
+                span,
             });
         }
 
@@ -436,14 +481,22 @@ impl Parser {
     fn literal(&mut self) -> Result<PrimaryExpression> {
         println!("Parsing literal (no-end)");
 
-        match self.current_or_eof()?.kind {
+        let current = self.current_or_eof()?;
+
+        match current.kind {
             TokenKind::IntLiteral(value) => {
                 self.advance();
-                Ok(PrimaryExpression::Literal(Literal::Int(value)))
+                Ok(PrimaryExpression::Literal(Literal {
+                    kind: LiteralKind::Int(value),
+                    span: current.span.clone(),
+                }))
             }
             TokenKind::BoolLiteral(value) => {
                 self.advance();
-                Ok(PrimaryExpression::Literal(Literal::Bool(value)))
+                Ok(PrimaryExpression::Literal(Literal {
+                    kind: LiteralKind::Bool(value),
+                    span: current.span.clone(),
+                }))
             }
             _ => Err(anyhow!(LangError::ExpectedAnyToken {
                 expected: vec![TokenKind::IntLiteral(0), TokenKind::BoolLiteral(false),],

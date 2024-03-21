@@ -40,6 +40,12 @@ pub enum LangError {
     // Invalid literal
     #[error("Invalid literal: `{0}`")]
     InvalidLiteral(String, Span),
+
+    // === Semantic Errors ===
+    #[error("Missing `main` function")]
+    MissingMainFunction(Span),
+    // #[error("Variable `{0}` already declared")]
+    // VariableRedeclaration(String
 }
 
 pub struct ErrorReporter<'a> {
@@ -71,6 +77,7 @@ impl LangError {
                 LangError::ExpectedAnyToken { span, .. } => span,
                 LangError::UnexpectedEOF(span) => span,
                 LangError::InvalidLiteral(_, span) => span,
+                LangError::MissingMainFunction(span) => span,
             },
         )
     }

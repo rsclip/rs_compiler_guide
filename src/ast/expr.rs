@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, token::Span};
 
 #[derive(Debug)]
 pub enum Expression {
@@ -10,6 +10,7 @@ pub enum Expression {
 #[derive(Debug)]
 pub struct Block {
     pub statements: Vec<Statement>,
+    pub span: Span,
 }
 
 impl Expression {
@@ -39,6 +40,16 @@ impl PrettyPrint for Expression {
             Expression::Primary(p) => p.pretty_print(indent),
             Expression::Unary(u) => u.pretty_print(indent),
             Expression::Binary(b) => b.pretty_print(indent),
+        }
+    }
+}
+
+impl ASTSpan for Expression {
+    fn span(&self) -> Span {
+        match self {
+            Expression::Primary(p) => p.span(),
+            Expression::Unary(u) => u.span.clone(),
+            Expression::Binary(b) => b.span.clone(),
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, token::Span};
 
 #[derive(Debug)]
 pub enum Statement {
@@ -13,6 +13,7 @@ pub struct VariableDecl {
     pub ident: Ident,
     pub ty: Type,
     pub expression: Expression,
+    pub span: Span,
 }
 
 #[derive(Debug)]
@@ -20,6 +21,7 @@ pub struct FlowStatement {
     pub condition: Expression,
     pub if_block: Block,
     pub else_block: Option<Block>,
+    pub span: Span,
 }
 
 impl PrettyPrint for Statement {

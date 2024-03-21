@@ -1,7 +1,13 @@
-use crate::ast::*;
+use crate::{ast::*, token::Span};
 
 #[derive(Debug)]
-pub enum UnaryExpression {
+pub struct UnaryExpression {
+    pub kind: UnaryExpressionKind,
+    pub span: Span,
+}
+
+#[derive(Debug)]
+pub enum UnaryExpressionKind {
     Negation(Box<Expression>),
     Not(Box<Expression>),
 }
@@ -11,18 +17,19 @@ pub struct BinaryExpression {
     pub lhs: Box<Expression>,
     pub op: BinaryOperator,
     pub rhs: Box<Expression>,
+    pub span: Span,
 }
 
 impl PrettyPrint for UnaryExpression {
     fn pretty_print(&self, indent: usize) -> String {
-        match self {
-            UnaryExpression::Negation(e) => format!(
+        match &self.kind {
+            UnaryExpressionKind::Negation(e) => format!(
                 "{:indent$}Negation\n{}\n",
                 "",
                 e.pretty_print(indent + 1),
                 indent = indent * 4
             ),
-            UnaryExpression::Not(e) => format!(
+            UnaryExpressionKind::Not(e) => format!(
                 "{:indent$}Not\n{}\n",
                 "",
                 e.pretty_print(indent + 1),

@@ -1,7 +1,13 @@
-use crate::ast::*;
+use crate::{ast::*, token::Span};
 
 #[derive(Debug)]
-pub enum BinaryOperator {
+pub struct BinaryOperator {
+    pub kind: BinaryOperatorKind,
+    pub span: Span,
+}
+
+#[derive(Debug)]
+pub enum BinaryOperatorKind {
     Add,
     Subtract,
     Multiply,
@@ -17,53 +23,68 @@ pub enum BinaryOperator {
     Or,
 }
 
-pub enum UnaryOperator {
+#[derive(Debug)]
+pub struct UnaryOperator {
+    pub kind: UnaryOperatorKind,
+    pub span: Span,
+}
+
+#[derive(Debug)]
+pub enum UnaryOperatorKind {
     Negate,
     Not,
 }
 
 impl BinaryOperator {
+    pub fn precedence(&self) -> u8 {
+        self.kind.precedence()
+    }
+}
+
+impl BinaryOperatorKind {
     /// Get the precedence of the operator
     pub fn precedence(&self) -> u8 {
         match self {
-            BinaryOperator::Or => 1,
-            BinaryOperator::And => 2,
-            BinaryOperator::Equal | BinaryOperator::NotEqual => 3,
-            BinaryOperator::LessThan
-            | BinaryOperator::GreaterThan
-            | BinaryOperator::LessThanOrEqual
-            | BinaryOperator::GreaterThanOrEqual => 4,
-            BinaryOperator::Add | BinaryOperator::Subtract => 5,
-            BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulus => 6,
+            BinaryOperatorKind::Or => 1,
+            BinaryOperatorKind::And => 2,
+            BinaryOperatorKind::Equal | BinaryOperatorKind::NotEqual => 3,
+            BinaryOperatorKind::LessThan
+            | BinaryOperatorKind::GreaterThan
+            | BinaryOperatorKind::LessThanOrEqual
+            | BinaryOperatorKind::GreaterThanOrEqual => 4,
+            BinaryOperatorKind::Add | BinaryOperatorKind::Subtract => 5,
+            BinaryOperatorKind::Multiply
+            | BinaryOperatorKind::Divide
+            | BinaryOperatorKind::Modulus => 6,
         }
     }
 }
 
-impl PrettyPrint for UnaryOperator {
+impl PrettyPrint for UnaryOperatorKind {
     fn pretty_print(&self, _indent: usize) -> String {
         match self {
-            UnaryOperator::Negate => "Negate ".to_string(),
-            UnaryOperator::Not => "Not ".to_string(),
+            UnaryOperatorKind::Negate => "Negate ".to_string(),
+            UnaryOperatorKind::Not => "Not ".to_string(),
         }
     }
 }
 
 impl PrettyPrint for BinaryOperator {
     fn pretty_print(&self, _indent: usize) -> String {
-        match self {
-            BinaryOperator::Add => "Add".to_string(),
-            BinaryOperator::Subtract => "Subtract".to_string(),
-            BinaryOperator::Multiply => "Multiply".to_string(),
-            BinaryOperator::Divide => "Divide".to_string(),
-            BinaryOperator::Modulus => "Modulus".to_string(),
-            BinaryOperator::Equal => "Equal".to_string(),
-            BinaryOperator::NotEqual => "NotEqual".to_string(),
-            BinaryOperator::LessThan => "LessThan".to_string(),
-            BinaryOperator::GreaterThan => "GreaterThan".to_string(),
-            BinaryOperator::LessThanOrEqual => "LessThanOrEqual".to_string(),
-            BinaryOperator::GreaterThanOrEqual => "GreaterThanOrEqual".to_string(),
-            BinaryOperator::And => "And".to_string(),
-            BinaryOperator::Or => "Or".to_string(),
+        match self.kind {
+            BinaryOperatorKind::Add => "Add".to_string(),
+            BinaryOperatorKind::Subtract => "Subtract".to_string(),
+            BinaryOperatorKind::Multiply => "Multiply".to_string(),
+            BinaryOperatorKind::Divide => "Divide".to_string(),
+            BinaryOperatorKind::Modulus => "Modulus".to_string(),
+            BinaryOperatorKind::Equal => "Equal".to_string(),
+            BinaryOperatorKind::NotEqual => "NotEqual".to_string(),
+            BinaryOperatorKind::LessThan => "LessThan".to_string(),
+            BinaryOperatorKind::GreaterThan => "GreaterThan".to_string(),
+            BinaryOperatorKind::LessThanOrEqual => "LessThanOrEqual".to_string(),
+            BinaryOperatorKind::GreaterThanOrEqual => "GreaterThanOrEqual".to_string(),
+            BinaryOperatorKind::And => "And".to_string(),
+            BinaryOperatorKind::Or => "Or".to_string(),
         }
     }
 }

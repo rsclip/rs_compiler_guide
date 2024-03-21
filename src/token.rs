@@ -2,7 +2,7 @@
 
 use std::hash::{Hash, Hasher};
 
-use crate::ast::{BinaryOperator, UnaryOperator};
+use crate::ast::{BinaryOperator, BinaryOperatorKind, UnaryOperator, UnaryOperatorKind};
 
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Token {
@@ -78,6 +78,104 @@ pub enum TokenKind {
     Eof,
 }
 
+impl Token {
+    pub fn as_bin_op(&self) -> Option<BinaryOperator> {
+        match self {
+            Token {
+                kind: TokenKind::Plus,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::Add,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::Minus,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::Subtract,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::Star,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::Multiply,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::Slash,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::Divide,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::Percent,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::Modulus,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::EqualsEquals,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::Equal,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::BangEquals,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::NotEqual,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::Less,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::LessThan,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::LessEquals,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::LessThanOrEqual,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::Greater,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::GreaterThan,
+                span: span.clone(),
+            }),
+            Token {
+                kind: TokenKind::GreaterEquals,
+                span,
+            } => Some(BinaryOperator {
+                kind: BinaryOperatorKind::GreaterThanOrEqual,
+                span: span.clone(),
+            }),
+            _ => None,
+        }
+    }
+
+    pub fn as_un_op(&self) -> Option<UnaryOperator> {
+        match self {
+            Token {
+                kind: TokenKind::Bang,
+                span,
+            } => Some(UnaryOperator {
+                kind: UnaryOperatorKind::Not,
+                span: span.clone(),
+            }),
+            _ => None,
+        }
+    }
+}
+
 impl TokenKind {
     /// Get operator from a string
     pub fn operator_from(op: &str) -> TokenKind {
@@ -108,33 +206,6 @@ impl TokenKind {
             "==" => TokenKind::EqualsEquals,
             "->" => TokenKind::Arrow,
             _ => panic!("Unknown operator: {}", op),
-        }
-    }
-
-    /// Convert to binary operator
-    pub fn as_binary_operator(&self) -> Option<BinaryOperator> {
-        match self {
-            TokenKind::Plus => Some(BinaryOperator::Add),
-            TokenKind::Minus => Some(BinaryOperator::Subtract),
-            TokenKind::Star => Some(BinaryOperator::Multiply),
-            TokenKind::Slash => Some(BinaryOperator::Divide),
-            TokenKind::Percent => Some(BinaryOperator::Modulus),
-            TokenKind::EqualsEquals => Some(BinaryOperator::Equal),
-            TokenKind::BangEquals => Some(BinaryOperator::NotEqual),
-            TokenKind::Less => Some(BinaryOperator::LessThan),
-            TokenKind::Greater => Some(BinaryOperator::GreaterThan),
-            TokenKind::LessEquals => Some(BinaryOperator::LessThanOrEqual),
-            TokenKind::GreaterEquals => Some(BinaryOperator::GreaterThanOrEqual),
-            _ => None,
-        }
-    }
-
-    /// Convert to unary operator
-    pub fn as_unary_operator(&self) -> Option<UnaryOperator> {
-        match self {
-            TokenKind::Bang => Some(UnaryOperator::Not),
-            TokenKind::Minus => Some(UnaryOperator::Negate),
-            _ => None,
         }
     }
 
@@ -346,5 +417,20 @@ impl ariadne::Span for ReportableSpan {
 
     fn end(&self) -> usize {
         self.end
+    }
+}
+
+impl Span {
+    pub fn combine(start: &Span, end: &Span) -> Span {
+        Span {
+            start: start.start,
+            end: end.end,
+        }
+    }
+}
+
+impl Default for Span {
+    fn default() -> Self {
+        Span { start: 0, end: 0 }
     }
 }

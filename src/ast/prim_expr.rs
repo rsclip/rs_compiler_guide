@@ -1,8 +1,9 @@
-use crate::ast::*;
+use crate::{ast::*, token::Span};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ident {
     pub ident: String,
+    pub span: Span,
 }
 
 #[derive(Debug)]
@@ -14,7 +15,13 @@ pub enum PrimaryExpression {
 }
 
 #[derive(Debug)]
-pub enum Literal {
+pub struct Literal {
+    pub kind: LiteralKind,
+    pub span: Span,
+}
+
+#[derive(Debug)]
+pub enum LiteralKind {
     Int(i32),
     Float(f32),
     Bool(bool),
@@ -49,10 +56,10 @@ impl PrettyPrint for PrimaryExpression {
 
 impl PrettyPrint for Literal {
     fn pretty_print(&self, indent: usize) -> String {
-        match self {
-            Literal::Int(i) => format!("{:indent$}Int {}\n", "", i, indent = indent * 4),
-            Literal::Float(f) => format!("{:indent$}Float {}\n", "", f, indent = indent * 4),
-            Literal::Bool(b) => format!("{:indent$}Bool {}\n", "", b, indent = indent * 4),
+        match self.kind {
+            LiteralKind::Int(i) => format!("{:indent$}Int {}\n", "", i, indent = indent * 4),
+            LiteralKind::Float(f) => format!("{:indent$}Float {}\n", "", f, indent = indent * 4),
+            LiteralKind::Bool(b) => format!("{:indent$}Bool {}\n", "", b, indent = indent * 4),
         }
     }
 }
@@ -60,5 +67,30 @@ impl PrettyPrint for Literal {
 impl PrettyPrint for Ident {
     fn pretty_print(&self, _indent: usize) -> String {
         self.ident.clone()
+    }
+}
+
+impl std::hash::Hash for Ident {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.ident.hash(state);
+    }
+}
+
+impl PartialEq for Ident {
+    fn eq(&self, other: &Self) -> bool {
+        self.ident == other.ident
+    }
+}
+
+impl Eq for Ident {}
+
+impl ASTSpan for PrimaryExpression {
+    fn span(&self) -> Span {
+        match self {
+            PrimaryExpression::Literal(l) => l.span.clone(),
+            PrimaryExpression::Ident(i) => i.span.clone(),
+            PrimaryExpression::Parenthesized(p) => p.span(),
+            PrimaryExpression::FunctionCall(i, _) => i.span.clone(),
+        }
     }
 }

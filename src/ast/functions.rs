@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, token::Span};
 
 #[derive(Debug)]
 pub struct FunctionDecl {
@@ -6,12 +6,14 @@ pub struct FunctionDecl {
     pub parameters: Vec<Parameter>,
     pub ty: Type,
     pub block: Block,
+    pub span: Span,
 }
 
 #[derive(Debug)]
 pub struct Parameter {
     pub ident: Ident,
     pub ty: Type,
+    pub span: Span,
 }
 
 impl PrettyPrint for FunctionDecl {

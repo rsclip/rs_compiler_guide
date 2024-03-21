@@ -10,6 +10,7 @@ pub mod token;
 #[macro_use]
 pub mod parser;
 pub mod ast;
+pub mod semantic_analysis;
 
 pub mod frontend;
 
