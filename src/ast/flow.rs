@@ -1,4 +1,7 @@
+use crate::errors::SemanticError;
+use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
+use anyhow::{anyhow, Error};
 
 #[derive(Debug)]
 pub enum Statement {
@@ -68,3 +71,93 @@ impl PrettyPrint for FlowStatement {
         s
     }
 }
+
+impl ASTSpan for Statement {
+    fn span(&self) -> Span {
+        match self {
+            Statement::Expression(e) => e.span(),
+            Statement::VariableDecl(v) => v.span.clone(),
+            Statement::Flow(f) => f.span.clone(),
+            Statement::Return(e) => e.as_ref().map(|e| e.span()).unwrap_or_default(),
+        }
+    }
+}
+
+impl Analysis for Statement {
+    fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        match self {
+            Statement::Expression(e) => e.analyze(table),
+            Statement::VariableDecl(v) => v.analyze(table),
+            Statement::Flow(f) => f.analyze(table),
+            Statement::Return(e) => e.as_ref().map_or_else(|| vec![], |e| e.analyze(table)),
+        }
+    }
+}
+
+impl Analysis for VariableDecl {
+    fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        let mut errors = Vec::new();
+
+        match table.add_var(&self) {
+            Ok(_) => (),
+            Err(e) => errors.push(e),
+        };
+
+        // check if expression type matches variable type
+        match self.expression.get_type(table) {
+            Ok(ty) => {
+                if ty != self.ty {
+                    errors.push(anyhow!(SemanticError::TypesDoNotMatch {
+                        expected_type: self.ty.clone(),
+                        expected_span: self.ty.span(),
+                        found_type: ty,
+                        found_span: self.expression.span(),
+                    }));
+                }
+            }
+            Err(e) => {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        errors
+    }
+}
+
+impl Analysis for FlowStatement {
+    fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        let mut errors = Vec::new();
+
+        // check if condition is a boolean
+        match self.condition.get_type(table) {
+
+            Ok(ty) => {
+                let bool_type = Type::Primitive(PrimitiveType {
+                    kind: PrimitiveKind::Bool,
+                    span: Span::default(),
+                });
+
+                if ty != bool_type {
+                    errors.push(anyhow!(SemanticError::NonBooleanCondition {
+                        found_type: ty,
+                        found_span: self.condition.span(),
+                    }));
+                }
+            }
+            Err(e) => {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        errors.extend(self.if_block.analyze(table));
+
+        if let Some(else_block) = &self.else_block {
+            errors.extend(else_block.analyze(table));
+        }
+
+        errors
+    }
+}
+

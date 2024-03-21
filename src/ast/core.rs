@@ -1,4 +1,6 @@
 use crate::ast::*;
+use crate::semantic_analysis::{Analysis, SymbolTable};
+use anyhow::Error;
 
 pub fn pretty_print_ast(ast: &AST) {
     println!("{}", ast.pretty_print(0));
@@ -48,5 +50,25 @@ impl PrettyPrint for Item {
 impl std::fmt::Display for AST {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.pretty_print(0))
+    }
+}
+
+impl Analysis for AST {
+    fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        let mut errors = Vec::new();
+
+        for item in &self.program.items {
+            errors.extend(item.analyze(table));
+        }
+
+        errors
+    }
+}
+
+impl Analysis for Item {
+    fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        match self {
+            Item::FunctionDecl(f) => f.analyze(table),
+        }
     }
 }

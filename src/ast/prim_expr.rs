@@ -1,4 +1,7 @@
+use crate::errors::SemanticError;
+use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
+use anyhow::{anyhow, Error, Result};
 
 #[derive(Debug, Clone)]
 pub struct Ident {
@@ -84,6 +87,12 @@ impl PartialEq for Ident {
 
 impl Eq for Ident {}
 
+impl std::fmt::Display for Ident {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.ident)
+    }
+}
+
 impl ASTSpan for PrimaryExpression {
     fn span(&self) -> Span {
         match self {
@@ -91,6 +100,108 @@ impl ASTSpan for PrimaryExpression {
             PrimaryExpression::Ident(i) => i.span.clone(),
             PrimaryExpression::Parenthesized(p) => p.span(),
             PrimaryExpression::FunctionCall(i, _) => i.span.clone(),
+        }
+    }
+}
+
+impl PrimaryExpression {
+    fn analyze_fn_call(&self, table: &mut SymbolTable) -> Vec<Error> {
+        let mut errors = Vec::new();
+
+        let (ident, args) = match self {
+            PrimaryExpression::FunctionCall(i, a) => (i, a),
+            _ => unreachable!("analyze_fn_call called on non-FunctionCall variant"),
+        };
+
+        // can we find the function in the symbol table?
+        if let Some(func) = table.get_fn(&ident) {
+            // check if the number of arguments match
+            if func.params.len() != args.len() {
+                errors.push(anyhow!(SemanticError::ArgumentCountMismatch {
+                    expected: func.params.len(),
+                    found: args.len(),
+                    call_span: ident.span.clone(),
+                    decl_span: func.span.clone(),
+                }));
+            } else {
+                // check if the types of the arguments match
+                for (param_ty, arg) in func.params.iter().zip(args) {
+                    let arg_ty: Type = match arg.get_type(table) {
+                        Ok(ty) => ty,
+                        Err(e) => {
+                            errors.push(e);
+                            continue;
+                        }
+                    };
+
+                    if *param_ty != arg_ty {
+                        errors.push(anyhow!(SemanticError::TypesDoNotMatch {
+                            expected_type: param_ty.clone(),
+                            expected_span: param_ty.span(),
+                            found_type: arg_ty,
+                            found_span: arg.span(),
+                        }));
+                    }
+                }
+            }
+        } else {
+            errors.push(anyhow!(SemanticError::FunctionNotDeclared(
+                ident.clone(),
+                ident.span.clone()
+            )));
+        }
+
+        errors
+    }
+
+    pub fn get_type(&self, table: &SymbolTable) -> Result<Type> {
+        match self {
+            PrimaryExpression::Literal(l) => Ok(l.get_type()),
+            PrimaryExpression::Ident(i) => {
+                if let Some(var) = table.get_var(&i) {
+                    Ok(var.ty.clone())
+                } else {
+                    Err(anyhow!(SemanticError::VariableNotDeclared(i.clone(), i.span.clone())))
+                }
+            }
+            PrimaryExpression::Parenthesized(p) => p.get_type(table),
+            PrimaryExpression::FunctionCall(i, _) => {
+                if let Some(func) = table.get_fn(&i) {
+                    Ok(func.ret_ty.clone())
+                } else {
+                    Err(anyhow!(SemanticError::FunctionNotDeclared(i.clone(), i.span.clone())))
+                }
+            }
+        }
+    }
+}
+
+impl Analysis for PrimaryExpression {
+    fn analyze(&self, _table: &mut SymbolTable) -> Vec<Error> {
+        match self {
+            PrimaryExpression::Literal(_) => vec![],
+            PrimaryExpression::Ident(_) => vec![],
+            PrimaryExpression::Parenthesized(p) => p.analyze(_table),
+            PrimaryExpression::FunctionCall(i, args) => self.analyze_fn_call(_table),
+        }
+    }
+}
+
+impl Literal {
+    fn get_type(&self) -> Type {
+        match self.kind {
+            LiteralKind::Int(_) => Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Int,
+                span: self.span.clone(),
+            }),
+            LiteralKind::Float(_) => Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Float,
+                span: self.span.clone(),
+            }),
+            LiteralKind::Bool(_) => Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Bool,
+                span: self.span.clone(),
+            }),
         }
     }
 }

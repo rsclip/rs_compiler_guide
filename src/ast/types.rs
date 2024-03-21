@@ -11,7 +11,7 @@ pub struct PrimitiveType {
     pub span: Span,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PrimitiveKind {
     Int,
     Float,
@@ -41,5 +41,25 @@ impl ASTSpan for Type {
         match self {
             Type::Primitive(p) => p.span.clone(),
         }
+    }
+}
+
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.pretty_print(0))
+    }
+}
+
+impl PartialEq for Type {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Type::Primitive(p1), Type::Primitive(p2)) => p1 == p2,
+        }
+    }
+}
+
+impl PartialEq for PrimitiveType {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind
     }
 }
