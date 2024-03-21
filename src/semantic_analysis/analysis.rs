@@ -62,9 +62,12 @@ pub fn analyse<'a>(ast: &'a AST) -> Vec<Error> {
     errors
 }
 
+/// These tests are inexact
+/// Errors may be unrelated but it will still pass
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_log::test;
 
     fn quick_parse(input: &str) -> AST {
         let lexer = crate::lexer::Lexer::new(input);
@@ -73,7 +76,13 @@ mod tests {
         assert!(err.is_empty());
 
         let mut parser = crate::parser::Parser::new(tokens);
-        parser.parse("test".to_string()).unwrap()
+        match parser.parse("test".to_string()) {
+            Ok(ast) => ast,
+            Err(e) => {
+                quick_errors(&vec![e], input);
+                panic!("Parser error");
+            }
+        }
     }
 
     /// Print errors
@@ -89,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_missing_main() {
-        let src = "fn foo() -> int {}";
+        let src = "fn foo() -> int {return 1;}";
         let ast = quick_parse(src);
         let errors = analyse(&ast);
 
@@ -102,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_main_found() {
-        let src = "fn main() -> int {}";
+        let src = "fn main() -> int {return 0;}";
         let ast = quick_parse(src);
         let errors = analyse(&ast);
 
@@ -111,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_duplicate_main() {
-        let src = "fn main() -> int {}\n\nfn main() -> int {}";
+        let src = "fn main() -> int {return 0;}\n\nfn main() -> int {return 1;}";
         let ast = quick_parse(src);
         let errors = analyse(&ast);
 
@@ -124,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_duplicate_var() {
-        let src = "fn main() -> int { let x: int = 5; let x: int = 5; }";
+        let src = "fn main() -> int { let x: int = 5; let y: int = 10; }";
         let ast = quick_parse(src);
         let errors = analyse(&ast);
 
@@ -135,9 +144,6 @@ mod tests {
         assert_eq!(errors[0].to_string(), "Variable `x` already declared");
     }
 
-    // ====================
-    // Complex tests
-    // ====================
     #[test]
     fn test_no_return() {
         let src = "fn main() -> int {}";
@@ -153,12 +159,21 @@ mod tests {
 
     #[test]
     fn test_if() {
-        let src = "fn main() -> int { if 1 == 1 { return 5; } }";
+        let src = "fn main() -> int {if 1 == 1 { return 5; }}";
         let ast = quick_parse(src);
         let errors = analyse(&ast);
 
         quick_errors(&errors, src);
 
         assert!(errors.len() > 0);
+    }
+
+    #[test]
+    fn undeclared_var() {
+        let src = "fn main() -> int { let x:int = 3; return x; }";
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
     }
 }

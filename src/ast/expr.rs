@@ -2,6 +2,7 @@ use crate::errors::SemanticError;
 use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
 use anyhow::{anyhow, Error, Result};
+use log::{debug, warn};
 
 #[derive(Debug)]
 pub enum Expression {
@@ -59,11 +60,16 @@ impl ASTSpan for Expression {
 
 impl Analysis for Block {
     fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        debug!("Analyzing block: {self:?}, table: {table:?}");
         let mut errors = Vec::new();
+        let mut new_table = SymbolTable::child(table);
 
         for statement in &self.statements {
-            errors.extend(statement.analyze(table));
+            debug!("Analyzing statement: {statement:?}");
+            errors.extend(statement.analyze(&mut new_table));
         }
+
+        debug!("Block analysis complete, errors: {errors:?}");
 
         errors
     }
@@ -72,27 +78,39 @@ impl Analysis for Block {
 impl Block {
     /// Explore for all return statements
     /// Return:
-    /// 1. The return values
+    /// 1. The return value **types**
     /// 2. Whether or not it guarantees a return regardless of the path
-    pub fn get_return_stmts(&self) -> (Vec<&Statement>, bool) {
-        let mut return_stms = Vec::new();
+    /// 
+    /// Invalid return statements will be ignored
+    pub fn get_return_stmts(&self, table: &mut SymbolTable) -> (Vec<Type>, bool) {
+        let mut return_stmts_types = Vec::new();
         let mut guaranteed_return = false;
+        let mut tmp_my_table = SymbolTable::child(table);
 
         for statement in &self.statements {
             match statement {
-                Statement::Return(ret) => {
-                    return_stms.push(statement);
+                Statement::Return(stmt) => {
+                    if let Some(expr) = stmt {
+                        if let Ok(ty) = expr.get_type(&tmp_my_table) {
+                            return_stmts_types.push(ty.clone());
+                        }
+                    }
                     guaranteed_return = true;
                     break;
                 }
+                Statement::VariableDecl(v) => {
+                    if let Err(e) = tmp_my_table.add_var(v) {
+                        warn!("Error adding variable to table: {:?}, {:?}", statement, e);
+                    }
+                },
                 Statement::Flow(flow) => {
-                    let (returns, guaranteed) = flow.if_block.get_return_stmts();
-                    return_stms.extend(returns);
+                    let (returns, guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
+                    return_stmts_types.extend(returns);
                     guaranteed_return &= guaranteed;
 
                     if let Some(else_block) = &flow.else_block {
-                        let (returns, guaranteed) = else_block.get_return_stmts();
-                        return_stms.extend(returns);
+                        let (returns, guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
+                        return_stmts_types.extend(returns);
                         guaranteed_return &= guaranteed;
                     }
                 }
@@ -100,7 +118,7 @@ impl Block {
             }
         }
 
-        (return_stms, guaranteed_return)
+        (return_stmts_types, guaranteed_return)
     }
 }
 

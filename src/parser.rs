@@ -5,6 +5,7 @@ use crate::errors::LangError;
 use crate::token::{Span, Token, TokenKind};
 use anyhow::{anyhow, Result};
 use std::cell::RefCell;
+use log::debug;
 
 /// Main parser struct
 /// Parses a program into an AST
@@ -105,7 +106,7 @@ impl Parser {
     }
 
     fn function(&mut self) -> Result<FunctionDecl> {
-        println!("Parsing function");
+        debug!("Parsing function");
         // "fn"
         self.expect(TokenKind::Fn)?;
 
@@ -148,13 +149,13 @@ impl Parser {
             span,
         };
 
-        println!("Parsed function: {:#?}", func);
+        debug!("Parsed function: {:#?}", func);
 
         Ok(func)
     }
 
     fn ident(&mut self) -> Result<Ident> {
-        println!("Parsing ident (no-end)");
+        debug!("Parsing ident (no-end)");
 
         let current = self.current_or_eof()?;
 
@@ -176,7 +177,7 @@ impl Parser {
     }
 
     fn parameter(&mut self) -> Result<Parameter> {
-        println!("Parsing parameter");
+        debug!("Parsing parameter");
 
         // IDENTIFIER
         let ident = self.ident()?;
@@ -191,13 +192,13 @@ impl Parser {
 
         let param = Parameter { ident, ty, span };
 
-        println!("Parsed parameter: {:#?}", param);
+        debug!("Parsed parameter: {:#?}", param);
 
         Ok(param)
     }
 
     fn type_(&mut self) -> Result<Type> {
-        println!("Parsing type (no-end)");
+        debug!("Parsing type (no-end)");
 
         match self.current_or_eof()?.kind {
             TokenKind::Int => {
@@ -223,7 +224,7 @@ impl Parser {
     }
 
     fn block(&mut self) -> Result<Block> {
-        println!("Parsing block");
+        debug!("Parsing block");
 
         let start_span = self.current_or_eof()?.span.clone();
 
@@ -245,13 +246,13 @@ impl Parser {
 
         let block = Block { statements, span };
 
-        println!("Parsed block: {:#?}", block);
+        debug!("Parsed block: {:#?}", block);
 
         Ok(block)
     }
 
     fn statement(&mut self) -> Result<Statement> {
-        println!("Parsing statement (no-end)");
+        debug!("Parsing statement (no-end)");
 
         match self.current_or_eof()?.kind {
             TokenKind::Let => self.variable_decl(),
@@ -266,7 +267,7 @@ impl Parser {
     }
 
     fn variable_decl(&mut self) -> Result<Statement> {
-        println!("Parsing variable decl");
+        debug!("Parsing variable decl");
 
         // "let"
         let start_span = self.expect(TokenKind::Let)?.span.clone();
@@ -298,13 +299,13 @@ impl Parser {
         // ";"
         self.expect(TokenKind::Semicolon)?;
 
-        println!("Parsed variable decl: {:#?}", var_decl);
+        debug!("Parsed variable decl: {:#?}", var_decl);
 
         Ok(var_decl)
     }
 
     fn flow_statement(&mut self) -> Result<Statement> {
-        println!("Parsing flow statement");
+        debug!("Parsing flow statement");
 
         // "if"
         let start_span = self.expect(TokenKind::If)?.span.clone();
@@ -336,13 +337,13 @@ impl Parser {
             span,
         });
 
-        println!("Parsed flow statement: {:#?}", stmt);
+        debug!("Parsed flow statement: {:#?}", stmt);
 
         Ok(stmt)
     }
 
     fn return_statement(&mut self) -> Result<Statement> {
-        println!("Parsing return statement");
+        debug!("Parsing return statement");
 
         // "return"
         self.expect(TokenKind::Return)?;
@@ -359,7 +360,7 @@ impl Parser {
 
         let stmt = Statement::Return(expression);
 
-        println!("Parsed return statement: {:#?}", stmt);
+        debug!("Parsed return statement: {:#?}", stmt);
 
         Ok(stmt)
     }
@@ -373,7 +374,7 @@ impl Parser {
     // ====================
 
     fn expression(&mut self) -> Result<Expression> {
-        println!("Parsing expression");
+        debug!("Parsing expression");
         let mut expr = self.primary()?;
 
         while let Some(op) = self.current_or_eof()?.as_bin_op() {
@@ -429,13 +430,13 @@ impl Parser {
             });
         }
 
-        println!("Parsed expression: {:#?}", expr);
+        debug!("Parsed expression: {:#?}", expr);
 
         Ok(expr)
     }
 
     fn primary(&mut self) -> Result<Expression> {
-        println!("Parsing primary expression (no-end)");
+        debug!("Parsing primary expression (no-end)");
 
         match self.current_or_eof()?.kind {
             TokenKind::IntLiteral(_) | TokenKind::BoolLiteral(_) => {
@@ -479,7 +480,7 @@ impl Parser {
     }
 
     fn literal(&mut self) -> Result<PrimaryExpression> {
-        println!("Parsing literal (no-end)");
+        debug!("Parsing literal (no-end)");
 
         let current = self.current_or_eof()?;
 
@@ -507,7 +508,7 @@ impl Parser {
     }
 
     fn expression_list(&mut self) -> Result<Vec<Expression>> {
-        println!("Parsing expression list");
+        debug!("Parsing expression list");
 
         let mut args = Vec::new();
         while self.current_or_eof()?.kind != TokenKind::RParen {

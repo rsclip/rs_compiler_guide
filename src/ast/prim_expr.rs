@@ -2,6 +2,7 @@ use crate::errors::SemanticError;
 use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
 use anyhow::{anyhow, Error, Result};
+use log::warn;
 
 #[derive(Debug, Clone)]
 pub struct Ident {
@@ -106,6 +107,7 @@ impl ASTSpan for PrimaryExpression {
 
 impl PrimaryExpression {
     fn analyze_fn_call(&self, table: &mut SymbolTable) -> Vec<Error> {
+        log::debug!("Analyzing function call: {:?}, table: {:?}", self, table);
         let mut errors = Vec::new();
 
         let (ident, args) = match self {
@@ -117,6 +119,7 @@ impl PrimaryExpression {
         if let Some(func) = table.get_fn(&ident) {
             // check if the number of arguments match
             if func.params.len() != args.len() {
+                warn!("Function call argument count mismatch: {:?}, {:?}", func, args);
                 errors.push(anyhow!(SemanticError::ArgumentCountMismatch {
                     expected: func.params.len(),
                     found: args.len(),
@@ -126,6 +129,7 @@ impl PrimaryExpression {
             } else {
                 // check if the types of the arguments match
                 for (param_ty, arg) in func.params.iter().zip(args) {
+                    log::debug!("Checking param {:?} against arg {:?}", param_ty, arg);
                     let arg_ty: Type = match arg.get_type(table) {
                         Ok(ty) => ty,
                         Err(e) => {
@@ -135,6 +139,7 @@ impl PrimaryExpression {
                     };
 
                     if *param_ty != arg_ty {
+                        warn!("Function call argument type mismatch: {:?}, {:?}", param_ty, arg_ty);
                         errors.push(anyhow!(SemanticError::TypesDoNotMatch {
                             expected_type: param_ty.clone(),
                             expected_span: param_ty.span(),
@@ -151,6 +156,8 @@ impl PrimaryExpression {
             )));
         }
 
+        log::debug!("Function call analysis errors: {:?}", errors);
+
         errors
     }
 
@@ -161,6 +168,7 @@ impl PrimaryExpression {
                 if let Some(var) = table.get_var(&i) {
                     Ok(var.ty.clone())
                 } else {
+                    eprintln!("Variable not declared: {:?} for table {:#?}", i, table);
                     Err(anyhow!(SemanticError::VariableNotDeclared(i.clone(), i.span.clone())))
                 }
             }

@@ -2,6 +2,7 @@ use crate::errors::SemanticError;
 use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
 use anyhow::{anyhow, Error};
+use log::{debug, warn};
 
 #[derive(Debug)]
 pub struct FunctionDecl {
@@ -49,48 +50,40 @@ impl PrettyPrint for Parameter {
 
 impl FunctionDecl {
     fn analyze_return_stmt(&self, table: &mut SymbolTable) -> Vec<Error> {
+        debug!("Analyzing return statements for function: {:?}", self.ident.ident);
         let mut errors = Vec::new();
 
         // multiple return statements
-        let (return_values, guaranteed_return) = self.block.get_return_stmts();
+        debug!("Getting return statements for function: {:?}", self.ident.ident);
+        let (return_values, guaranteed_return) = self.block.get_return_stmts(table);
+
         if !guaranteed_return {
+            warn!("Function does not have a guaranteed return statement: {:?}", self.ident.ident);
             errors.push(anyhow!(SemanticError::MissingReturnStatement(
                 self.span.clone()
             )));
         } else {
-            for stmt in return_values {
-                let expression = match stmt {
-                    Statement::Return(e) => e,
-                    _ => unreachable!(),
-                };
-
-                let expression = expression.as_ref().expect("Return statement without expression");
-
-                // get type (may be an error)
-                let ty: Type = match expression.get_type(table) {
-                    Ok(ty) => ty,
-                    Err(e) => {
-                        errors.push(e);
-                        continue;
-                    }
-                };
-
+            for ty in return_values {
                 if ty != self.ty {
+                    warn!("Incompatible return type for function: {:?}", self.ident.ident);
                     errors.push(anyhow!(SemanticError::IncompatibleReturnType {
                         expected_type: self.ty.clone(),
                         expected_span: self.span.clone(),
-                        found_type: ty,
-                        found_span: stmt.span(),
+                        found_type: ty.clone(),
+                        found_span: ty.span(),
                     }));
                 }
             }
         }
+
+        debug!("Return statement analysis errors: {:?}", errors);
 
         errors
     }
 
     /// Analyze parameters, and build a new symbol table for the next block
     fn analyze_parameters(&self, new_table: &mut SymbolTable) -> Vec<Error> {
+        debug!("Analyzing parameters for function: {:?}", self.ident.ident);
         let mut errors = Vec::new();
 
         for param in &self.parameters {
@@ -99,12 +92,15 @@ impl FunctionDecl {
             }
         }
 
+        debug!("Parameter analysis errors: {:?}", errors);
+
         errors
     }
 }
 
 impl Analysis for FunctionDecl {
     fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        debug!("Analyzing function declaration: {:?}", self.ident.ident);
         let mut errors = Vec::new();
 
         errors.extend(self.analyze_return_stmt(table));
@@ -115,6 +111,8 @@ impl Analysis for FunctionDecl {
 
         // analyze the block
         errors.extend(self.block.analyze(&mut new_table));
+
+        debug!("Function declaration analysis errors: {:?}", errors);
 
         errors
     }

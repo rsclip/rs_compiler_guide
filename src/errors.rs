@@ -44,9 +44,10 @@ pub enum LangError {
 }
 
 /// Errors for Semantic Analysis
-#[derive(Debug, Error)]
+#[derive(Debug, Error, HelpMessage)]
 pub enum SemanticError {
     #[error("Missing `main` function")]
+    #[help = "Consider declaring a main function"]
     MissingMainFunction(Span),
 
     /// 2 spans for function declaration, and the existing declaration
@@ -169,7 +170,8 @@ impl SemanticError {
 
         let labels = self.get_labels(&file);
 
-        Report::build(ReportKind::Error, self.to_string(), span.start)
+        Report::build(ReportKind::Error, file, span.start)
+            .with_message(self.to_string())
             .with_labels(labels)
             .finish()
     }
@@ -185,14 +187,11 @@ impl SemanticError {
                 SemanticError::MainMustReturnInt(span) => span,
                 SemanticError::MissingReturnStatement(span) => span,
                 SemanticError::IncompatibleReturnType {
-                    expected_type,
-                    expected_span,
-                    found_type,
                     found_span,
+                    ..
                 } => found_span,
                 SemanticError::ReturnNotGuaranteed(span) => span,
                 SemanticError::TypesDoNotMatch {
-                    expected_span,
                     found_span,
                     ..
                 } => found_span,
@@ -371,5 +370,16 @@ impl<'a> ErrorReporter<'a> {
             Ok(_) => Ok(()),
             Err(e) => Err(anyhow!("Failed to print diagnostic: {}", e)),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn macro_test() {
+        let err = SemanticError::MissingMainFunction(Span::default());
+        assert_eq!(err.help(), "Consider declaring a main function");
     }
 }

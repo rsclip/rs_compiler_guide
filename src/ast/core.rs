@@ -55,12 +55,14 @@ impl std::fmt::Display for AST {
 
 impl Analysis for AST {
     fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        log::debug!("Analyzing AST, table: {:?}", table);
         let mut errors = Vec::new();
 
         for item in &self.program.items {
             errors.extend(item.analyze(table));
         }
 
+        log::debug!("AST complete, errors: {:?}", errors);
         errors
     }
 }

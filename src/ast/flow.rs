@@ -2,6 +2,7 @@ use crate::errors::SemanticError;
 use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
 use anyhow::{anyhow, Error};
+use log::{debug, warn};
 
 #[derive(Debug)]
 pub enum Statement {
@@ -96,6 +97,7 @@ impl Analysis for Statement {
 
 impl Analysis for VariableDecl {
     fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        debug!("Analyzing variable declaration: {:?}", self.ident.ident);
         let mut errors = Vec::new();
 
         match table.add_var(&self) {
@@ -103,10 +105,12 @@ impl Analysis for VariableDecl {
             Err(e) => errors.push(e),
         };
 
+        debug!("Checking expression type: {:?}", self.expression);
         // check if expression type matches variable type
         match self.expression.get_type(table) {
             Ok(ty) => {
                 if ty != self.ty {
+                    warn!("Variable type does not match expression type: {:?}", self.ident.ident);
                     errors.push(anyhow!(SemanticError::TypesDoNotMatch {
                         expected_type: self.ty.clone(),
                         expected_span: self.ty.span(),
@@ -116,10 +120,13 @@ impl Analysis for VariableDecl {
                 }
             }
             Err(e) => {
+                warn!("Error getting expression type: {:?}", self.ident.ident);
                 errors.push(e);
                 return errors;
             }
         };
+
+        debug!("Variable declaration analysis errors: {:?}", errors);
 
         errors
     }
@@ -127,9 +134,11 @@ impl Analysis for VariableDecl {
 
 impl Analysis for FlowStatement {
     fn analyze(&self, table: &mut SymbolTable) -> Vec<Error> {
+        debug!("Analyzing flow statement: {:?}", self);
         let mut errors = Vec::new();
 
         // check if condition is a boolean
+        debug!("Checking condition type: {:?}", self.condition);
         match self.condition.get_type(table) {
 
             Ok(ty) => {
@@ -146,16 +155,21 @@ impl Analysis for FlowStatement {
                 }
             }
             Err(e) => {
+                warn!("Error getting condition type: {:?}", self.condition);
                 errors.push(e);
                 return errors;
             }
         };
 
+        debug!("Analyzing if block: {:?}", self.if_block);
         errors.extend(self.if_block.analyze(table));
 
         if let Some(else_block) = &self.else_block {
+            debug!("Analyzing else block: {:?}", else_block);
             errors.extend(else_block.analyze(table));
         }
+
+        debug!("Flow statement analysis errors: {:?}", errors);
 
         errors
     }
