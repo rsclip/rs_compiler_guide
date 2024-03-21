@@ -56,6 +56,7 @@ impl FunctionDecl {
         // multiple return statements
         debug!("Getting return statements for function: {:?}", self.ident.ident);
         let (return_values, guaranteed_return) = self.block.get_return_stmts(table);
+        debug!("Return values: {:?}, guaranteed return: {:?}", return_values, guaranteed_return);
 
         if !guaranteed_return {
             warn!("Function does not have a guaranteed return statement: {:?}", self.ident.ident);

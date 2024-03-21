@@ -84,7 +84,7 @@ impl Block {
     /// Invalid return statements will be ignored
     pub fn get_return_stmts(&self, table: &mut SymbolTable) -> (Vec<Type>, bool) {
         let mut return_stmts_types = Vec::new();
-        let mut guaranteed_return = false;
+        let mut guaranteed_return = true;
         let mut tmp_my_table = SymbolTable::child(table);
 
         for statement in &self.statements {
@@ -95,6 +95,7 @@ impl Block {
                             return_stmts_types.push(ty.clone());
                         }
                     }
+                    debug!("Found return statement: {:?}", statement);
                     guaranteed_return = true;
                     break;
                 }
@@ -105,11 +106,13 @@ impl Block {
                 },
                 Statement::Flow(flow) => {
                     let (returns, guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
+                    debug!("If block return values (guaranteed {guaranteed}): {:?}", &returns);
                     return_stmts_types.extend(returns);
                     guaranteed_return &= guaranteed;
 
                     if let Some(else_block) = &flow.else_block {
                         let (returns, guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
+                        debug!("Else block return values (guaranteed {guaranteed}): {:?}", &returns);
                         return_stmts_types.extend(returns);
                         guaranteed_return &= guaranteed;
                     }

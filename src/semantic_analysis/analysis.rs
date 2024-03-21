@@ -189,4 +189,36 @@ mod tests {
 
         assert_eq!(errors[0].to_string(), "Incompatible return type");
     }
+
+    #[test]
+    fn incompatible_return_type_var() {
+        let src = "fn main() -> int {\n\treturn 5;\n}\nfn foo() -> bool {\n\tlet x: int = 5;\n\treturn x;\n}";
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+
+        assert_eq!(errors[0].to_string(), "Incompatible return type");
+    }
+
+    #[test]
+    fn return_unguaranteed() {
+        let src = r#"fn main() -> int {
+            if 1 == 1 {
+                return 5;
+            } else {
+                return 10;
+            }
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+
+        assert_eq!(errors[0].to_string(), "Missing return statement");
+    }
 }
