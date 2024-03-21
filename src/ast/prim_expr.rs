@@ -120,11 +120,18 @@ impl PrimaryExpression {
             // check if the number of arguments match
             if func.params.len() != args.len() {
                 warn!("Function call argument count mismatch: {:?}, {:?}", func, args);
+
+                // get the span of arguments supplied
+                let call_span = Span::combine(
+                    &args.first().map(|a| a.span()).unwrap_or(ident.span.clone()),
+                    &args.last().map(|a| a.span()).unwrap_or(ident.span.clone()),
+                );
+
                 errors.push(anyhow!(SemanticError::ArgumentCountMismatch {
                     expected: func.params.len(),
                     found: args.len(),
-                    call_span: ident.span.clone(),
-                    decl_span: func.span.clone(),
+                    call_span,
+                    decl_span: func.sig_span.clone(),
                 }));
             } else {
                 // check if the types of the arguments match
@@ -168,7 +175,7 @@ impl PrimaryExpression {
                 if let Some(var) = table.get_var(&i) {
                     Ok(var.ty.clone())
                 } else {
-                    eprintln!("Variable not declared: {:?} for table {:#?}", i, table);
+                    log::debug!("During type-retrieval variable not declared: {:?} for table {:?}", i, table);
                     Err(anyhow!(SemanticError::VariableNotDeclared(i.clone(), i.span.clone())))
                 }
             }

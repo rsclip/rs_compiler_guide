@@ -5,6 +5,7 @@ use crate::errors::SemanticError;
 use crate::token::Span;
 
 use anyhow::{anyhow, Result};
+use log::{debug, warn};
 
 use std::collections::HashMap;
 
@@ -110,12 +111,14 @@ impl<'a> SymbolTable<'a> {
         let ret_ty = func.ty.clone();
 
         if let Some(existing) = self.functions.get(&func.ident) {
+            warn!("Function already declared: {}", func.ident.ident);
             return Err(anyhow!(SemanticError::FunctionAlreadyDeclared(
                 func.ident.clone(),
                 func.span.clone(),
                 existing.span.clone()
             )));
         } else {
+            debug!("Adding function: {}", func.ident.ident);
             self.functions.insert(
                 func.ident.clone(),
                 FuncSymbol {
@@ -133,11 +136,23 @@ impl<'a> SymbolTable<'a> {
 
     /// Looks up a variable symbol in the table
     pub fn get_var(&self, name: &Ident) -> Option<&VarSymbol> {
-        self.variables.get(name)
+        match self.variables.get(name) {
+            Some(v) => Some(v),
+            None => match &self.parent {
+                Some(p) => p.get_var(name),
+                None => None,
+            },
+        }
     }
 
     /// Looks up a function symbol in the table
     pub fn get_fn(&self, name: &Ident) -> Option<&FuncSymbol> {
-        self.functions.get(name)
+        match self.functions.get(name) {
+            Some(f) => Some(f),
+            None => match &self.parent {
+                Some(p) => p.get_fn(name),
+                None => None,
+            },
+        }
     }
 }

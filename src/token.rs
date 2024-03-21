@@ -422,9 +422,19 @@ impl ariadne::Span for ReportableSpan {
 
 impl Span {
     pub fn combine(start: &Span, end: &Span) -> Span {
+        let left_most = std::cmp::min(start.start, end.start);
+        let right_most = std::cmp::max(start.end, end.end);
+
         Span {
-            start: start.start,
-            end: end.end,
+            start: left_most,
+            end: right_most,
+        }
+    }
+
+    pub fn between(start: &Span, end: &Span) -> Span {
+        Span {
+            start: start.end,
+            end: end.start,
         }
     }
 }

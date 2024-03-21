@@ -297,4 +297,88 @@ mod tests {
 
         assert_eq!(errors.len(), 0);
     }
+
+    #[test]
+    fn var_type_mismatch() {
+        let src = r#"fn main() -> int {
+            let x: bool = 3;
+            return x;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 2);
+    }
+
+    #[test]
+    fn non_bool_condition() {
+        let src = r#"fn main() -> int {
+            if 3 {
+                return 5;
+            }
+
+            return 1;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+    }
+
+    #[test]
+    fn non_bool_condition_pass() {
+        let src = r#"fn main() -> int {
+            if 3 == 3 {
+                return 5;
+            }
+
+            return 1;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 0);
+    }
+
+    #[test]
+    fn func_args() {
+        let src = r#"fn main() -> int {
+            let x: int = 5;
+            return foo(x);
+        }
+
+        fn foo(x: int) -> int {
+            return x;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 0);
+    }
+
+    #[test]
+    fn func_args_2() {
+        let src = r#"fn main() -> int {
+            let x: int = 5;
+            return foo(x, 5);
+        }
+
+        fn foo(x: int) -> int {
+            return x;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+    }
 }

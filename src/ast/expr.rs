@@ -91,6 +91,7 @@ impl Block {
         for statement in &self.statements {
             match statement {
                 Statement::Return(stmt) => {
+                    debug!("Getting return statement type, table: {table:?}");
                     if let Some(expr) = stmt {
                         if let Ok(ty) = expr.get_type(&tmp_my_table) {
                             return_stmts_types.push(ty.clone());
