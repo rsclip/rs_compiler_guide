@@ -60,9 +60,15 @@ impl FunctionDecl {
 
         if !guaranteed_return {
             warn!("Function does not have a guaranteed return statement: {:?}", self.ident.ident);
-            errors.push(anyhow!(SemanticError::MissingReturnStatement(
-                self.span.clone()
-            )));
+            if return_values.len() == 0 {
+                errors.push(anyhow!(SemanticError::MissingReturnStatement(
+                    self.span.clone()
+                )));
+            } else {
+                errors.push(anyhow!(SemanticError::ReturnNotGuaranteed(
+                    self.span.clone()
+                )));
+            }
         } else {
             for ty in return_values {
                 if ty != self.ty {

@@ -86,6 +86,7 @@ impl Block {
         let mut return_stmts_types = Vec::new();
         let mut guaranteed_return = true;
         let mut tmp_my_table = SymbolTable::child(table);
+        let mut early_return = false;
 
         for statement in &self.statements {
             match statement {
@@ -97,6 +98,7 @@ impl Block {
                     }
                     debug!("Found return statement: {:?}", statement);
                     guaranteed_return = true;
+                    early_return = true;
                     break;
                 }
                 Statement::VariableDecl(v) => {
@@ -105,24 +107,33 @@ impl Block {
                     }
                 },
                 Statement::Flow(flow) => {
-                    let (returns, guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
-                    debug!("If block return values (guaranteed {guaranteed}): {:?}", &returns);
+                    let (returns, if_guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
+                    debug!("If block return values (guaranteed {if_guaranteed}): {:?}", &returns);
                     return_stmts_types.extend(returns);
-                    guaranteed_return &= guaranteed;
+                    guaranteed_return &= if_guaranteed;
 
                     if let Some(else_block) = &flow.else_block {
-                        let (returns, guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
-                        debug!("Else block return values (guaranteed {guaranteed}): {:?}", &returns);
+                        let (returns, else_guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
+                        debug!("Else block return values (guaranteed {else_guaranteed}): {:?}", &returns);
                         return_stmts_types.extend(returns);
-                        guaranteed_return &= guaranteed;
+                        guaranteed_return &= else_guaranteed;
+
+                        // in the case where both blocks have a return statement
+                        // we can guarantee a return
+                        if if_guaranteed && else_guaranteed {
+                            early_return = true;
+                            break;
+                        }
                     }
                 }
                 _ => {}
             }
         }
 
-        (return_stmts_types, guaranteed_return)
+        (return_stmts_types, guaranteed_return && early_return)
     }
+    
+    
 }
 
 impl Analysis for Expression {

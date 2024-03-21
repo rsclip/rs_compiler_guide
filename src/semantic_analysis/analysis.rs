@@ -205,11 +205,10 @@ mod tests {
 
     #[test]
     fn return_unguaranteed() {
+        // should fail since there is no return statement if condition is false
         let src = r#"fn main() -> int {
             if 1 == 1 {
                 return 5;
-            } else {
-                return 10;
             }
         }"#;
         let ast = quick_parse(src);
@@ -219,6 +218,83 @@ mod tests {
 
         assert_eq!(errors.len(), 1);
 
-        assert_eq!(errors[0].to_string(), "Missing return statement");
+        assert_eq!(errors[0].to_string(), "Return not guaranteed in all branches");
+    }
+
+    #[test]
+    fn return_unguaranteed_2() {
+        // should pass since all paths have a return statement
+        let src = r#"fn main() -> int {
+            if 1 == 1 {
+                return 5;
+            } else {
+                return 6;
+            }
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 0);
+    }
+
+    #[test]
+    fn return_unguaranteed_3() {
+        // should fail since there is no return statement if condition is false
+        let src = r#"fn main() -> int {
+            if 1 == 1 {
+                return 5;
+            } else {
+            }
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+
+        assert_eq!(errors[0].to_string(), "Return not guaranteed in all branches");
+    }
+
+    #[test]
+    fn return_unguaranteed_4() {
+        // should pass
+        let src = r#"fn main() -> int {
+            if 1 == 1 {
+                return 5;
+            }
+
+            return 6;
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 0);
+    }
+
+    #[test]
+    fn return_unguaranteed_5() {
+        // should pass
+        let src = r#"fn main() -> int {
+            if 1 == 1 {
+                if 2 == 2 {
+                    return 5;
+                } else {
+                    return 6;
+                }
+            } else {
+                return 7;
+            }
+        }"#;
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 0);
     }
 }

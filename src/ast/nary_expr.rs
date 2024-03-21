@@ -229,7 +229,19 @@ impl BinaryExpression {
 
         debug!("BinaryExpression type success: {:?}", lhs_type);
 
-        Ok(lhs_type)
+        // if comparison, return bool
+        match self.op.kind {
+            BinaryOperatorKind::Equal
+            | BinaryOperatorKind::NotEqual
+            | BinaryOperatorKind::LessThan
+            | BinaryOperatorKind::LessThanOrEqual
+            | BinaryOperatorKind::GreaterThan
+            | BinaryOperatorKind::GreaterThanOrEqual => Ok(Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Bool,
+                span: self.span.clone(),
+            })),
+            _ => Ok(lhs_type),
+        }
     }
 
     fn is_valid_type(&self, ty: &Type) -> bool {
