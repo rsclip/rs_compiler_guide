@@ -68,7 +68,7 @@ impl FunctionDecl {
                     warn!("Incompatible return type for function: {:?}", self.ident.ident);
                     errors.push(anyhow!(SemanticError::IncompatibleReturnType {
                         expected_type: self.ty.clone(),
-                        expected_span: self.span.clone(),
+                        expected_span: self.ty.span(),
                         found_type: ty.clone(),
                         found_span: ty.span(),
                     }));

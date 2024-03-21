@@ -1,4 +1,3 @@
-workspace = { members = ["comp_macro"] }
 [package]
 name = "compile"
 version = "0.1.0"

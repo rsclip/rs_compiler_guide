@@ -8,6 +8,11 @@ use anyhow::{anyhow, Result};
 use ariadne::{Color, Label, Report, ReportKind};
 use thiserror::Error;
 
+/// Main colour preset
+pub const PRIM_COLOR: Color = Color::Red;
+pub const SEC_COLOR: Color = Color::Cyan;
+pub const TERT_COLOR: Color = Color::Yellow;
+
 /// The error type for the library
 #[derive(Debug, Error)]
 pub enum LangError {
@@ -44,10 +49,9 @@ pub enum LangError {
 }
 
 /// Errors for Semantic Analysis
-#[derive(Debug, Error, HelpMessage)]
+#[derive(Debug, Error)]
 pub enum SemanticError {
     #[error("Missing `main` function")]
-    #[help = "Consider declaring a main function"]
     MissingMainFunction(Span),
 
     /// 2 spans for function declaration, and the existing declaration
@@ -84,10 +88,7 @@ pub enum SemanticError {
     },
 
     #[error("Condition must be a boolean")]
-    NonBooleanCondition {
-        found_type: Type,
-        found_span: Span,
-    },
+    NonBooleanCondition { found_type: Type, found_span: Span },
 
     #[error("Function `{0}` has not been declared yet")]
     FunctionNotDeclared(Ident, Span),
@@ -116,7 +117,7 @@ pub enum SemanticError {
         operator: String,
         operand_type: Type,
         span: Span,
-    }
+    },
 }
 
 pub struct ErrorReporter<'a> {
@@ -130,7 +131,7 @@ impl LangError {
 
         let label = Label::new(span.clone())
             .with_message(self.to_string())
-            .with_color(Color::Red);
+            .with_color(PRIM_COLOR);
 
         Report::build(ReportKind::Error, self.to_string(), span.start)
             .with_label(label)
@@ -170,10 +171,15 @@ impl SemanticError {
 
         let labels = self.get_labels(&file);
 
-        Report::build(ReportKind::Error, file, span.start)
+        let mut builder = Report::build(ReportKind::Error, file, span.start)
             .with_message(self.to_string())
-            .with_labels(labels)
-            .finish()
+            .with_labels(labels);
+
+        if let Some(help) = self.help() {
+            builder = builder.with_help(help);
+        }
+
+        builder.finish()
     }
 
     /// First span of error
@@ -186,15 +192,9 @@ impl SemanticError {
                 SemanticError::VariableAlreadyDeclared(_, span, _) => span,
                 SemanticError::MainMustReturnInt(span) => span,
                 SemanticError::MissingReturnStatement(span) => span,
-                SemanticError::IncompatibleReturnType {
-                    found_span,
-                    ..
-                } => found_span,
+                SemanticError::IncompatibleReturnType { found_span, .. } => found_span,
                 SemanticError::ReturnNotGuaranteed(span) => span,
-                SemanticError::TypesDoNotMatch {
-                    found_span,
-                    ..
-                } => found_span,
+                SemanticError::TypesDoNotMatch { found_span, .. } => found_span,
                 SemanticError::NonBooleanCondition { found_span, .. } => found_span,
                 SemanticError::FunctionNotDeclared(_, span) => span,
                 SemanticError::VariableNotDeclared(_, span) => span,
@@ -209,58 +209,58 @@ impl SemanticError {
         match self {
             SemanticError::MissingMainFunction(ref span) => {
                 vec![Label::new(ReportableSpan::new(file.clone(), span))
-                    .with_message("Missing `main` function")
-                    .with_color(Color::Red)]
+                    .with_message("No main function declared")
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::FunctionAlreadyDeclared(ref name, ref span, ref existing) => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message(format!("Function `{}` already declared", name))
-                        .with_color(Color::Red),
+                        .with_message(format!("Tried to declare {name} here"))
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), existing))
-                        .with_message("First declared here")
-                        .with_color(Color::Yellow),
+                        .with_message("Already declared here")
+                        .with_color(SEC_COLOR),
                 ]
             }
             SemanticError::VariableAlreadyDeclared(ref name, ref span, ref existing) => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), span))
                         .with_message(format!("Variable `{}` already declared", name))
-                        .with_color(Color::Red),
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), existing))
                         .with_message("First declared here")
-                        .with_color(Color::Yellow),
+                        .with_color(SEC_COLOR),
                 ]
             }
             SemanticError::MainMustReturnInt(ref span) => {
                 vec![Label::new(ReportableSpan::new(file.clone(), span))
-                    .with_message("`main` must return an integer")
-                    .with_color(Color::Red)]
+                    .with_message("Does not return an integer literal")
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::MissingReturnStatement(ref span) => {
                 vec![Label::new(ReportableSpan::new(file.clone(), span))
                     .with_message("Missing return statement")
-                    .with_color(Color::Red)]
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::IncompatibleReturnType {
                 expected_type,
                 expected_span,
-                found_type,
                 found_span,
+                found_type,
             } => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), found_span))
-                        .with_message("Incompatible return type")
-                        .with_color(Color::Red),
+                        .with_message(format!("found {found_type} instead of {expected_type}"))
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), expected_span))
-                        .with_message(format!("Expected `{}`", expected_type))
-                        .with_color(Color::Yellow),
+                        .with_message(format!("expected {expected_type} return type"))
+                        .with_color(SEC_COLOR),
                 ]
-            },
+            }
             SemanticError::ReturnNotGuaranteed(ref span) => {
                 vec![Label::new(ReportableSpan::new(file.clone(), span))
                     .with_message("Return not guaranteed in all branches")
-                    .with_color(Color::Red)]
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::TypesDoNotMatch {
                 expected_type,
@@ -270,11 +270,13 @@ impl SemanticError {
             } => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), found_span))
-                        .with_message("Types do not match")
-                        .with_color(Color::Red),
+                        .with_message(format!(
+                            "found type {found_type} instead of {expected_type}"
+                        ))
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), expected_span))
-                        .with_message(format!("Expected `{}`", expected_type))
-                        .with_color(Color::Yellow),
+                        .with_message(format!("expected type {expected_type}"))
+                        .with_color(SEC_COLOR),
                 ]
             }
             SemanticError::NonBooleanCondition {
@@ -282,18 +284,18 @@ impl SemanticError {
                 found_span,
             } => {
                 vec![Label::new(ReportableSpan::new(file.clone(), found_span))
-                    .with_message("Condition must be a boolean")
-                    .with_color(Color::Red)]
+                    .with_message(format!("evaluates to {found_type}"))
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::FunctionNotDeclared(ref name, ref span) => {
                 vec![Label::new(ReportableSpan::new(file.clone(), span))
                     .with_message(format!("Function `{}` has not been declared yet", name))
-                    .with_color(Color::Red)]
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::VariableNotDeclared(ref name, ref span) => {
                 vec![Label::new(ReportableSpan::new(file.clone(), span))
                     .with_message(format!("Variable `{}` has not been declared yet", name))
-                    .with_color(Color::Red)]
+                    .with_color(PRIM_COLOR)]
             }
             SemanticError::ArgumentCountMismatch {
                 expected,
@@ -303,14 +305,11 @@ impl SemanticError {
             } => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), call_span))
-                        .with_message(format!(
-                            "Expected {} arguments, found {}",
-                            expected, found
-                        ))
-                        .with_color(Color::Red),
+                        .with_message(format!("got {found} arguments"))
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), decl_span))
-                        .with_message("Function declared here")
-                        .with_color(Color::Yellow),
+                        .with_message(format!("expected {expected} arguments"))
+                        .with_color(SEC_COLOR),
                 ]
             }
             SemanticError::UnsupportedUnaryOperation {
@@ -320,14 +319,11 @@ impl SemanticError {
             } => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message("Unsupported unary operation")
-                        .with_color(Color::Red),
+                        .with_message("unsupported unary operation for {operator}")
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message(format!("Operator: `{}`", operator))
-                        .with_color(Color::Yellow),
-                    Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message(format!("Operand type: `{}`", operand_type))
-                        .with_color(Color::Yellow),
+                        .with_message(format!("can't apply {operator} to {operand_type}"))
+                        .with_color(SEC_COLOR),
                 ]
             }
             SemanticError::UnsupportedBinaryOperation {
@@ -337,16 +333,29 @@ impl SemanticError {
             } => {
                 vec![
                     Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message("Unsupported binary operation")
-                        .with_color(Color::Red),
+                        .with_message("unsupported binary operation for {operator}")
+                        .with_color(PRIM_COLOR),
                     Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message(format!("Operator: `{}`", operator))
-                        .with_color(Color::Yellow),
-                    Label::new(ReportableSpan::new(file.clone(), span))
-                        .with_message(format!("Operand type: `{}`", operand_type))
-                        .with_color(Color::Yellow),
+                        .with_message(format!("can't apply {operator} to {operand_type}"))
+                        .with_color(SEC_COLOR),
                 ]
             }
+        }
+    }
+
+    /// Optional help text
+    fn help(&self) -> Option<String> {
+        match self {
+            SemanticError::MissingMainFunction(_) => {
+                Some("consider declaring a main function".to_string())
+            }
+            SemanticError::MissingReturnStatement(_) => {
+                Some("consider adding a reachable return statement".to_string())
+            }
+            SemanticError::ReturnNotGuaranteed(_) => {
+                Some("make sure all possible paths return a value".to_string())
+            }
+            _ => None,
         }
     }
 }
@@ -370,16 +379,5 @@ impl<'a> ErrorReporter<'a> {
             Ok(_) => Ok(()),
             Err(e) => Err(anyhow!("Failed to print diagnostic: {}", e)),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn macro_test() {
-        let err = SemanticError::MissingMainFunction(Span::default());
-        assert_eq!(err.help(), "Consider declaring a main function");
     }
 }

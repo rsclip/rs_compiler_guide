@@ -4,8 +4,8 @@ use crate::ast::*;
 use crate::errors::LangError;
 use crate::token::{Span, Token, TokenKind};
 use anyhow::{anyhow, Result};
-use std::cell::RefCell;
 use log::debug;
+use std::cell::RefCell;
 
 /// Main parser struct
 /// Parses a program into an AST
@@ -200,27 +200,26 @@ impl Parser {
     fn type_(&mut self) -> Result<Type> {
         debug!("Parsing type (no-end)");
 
-        match self.current_or_eof()?.kind {
-            TokenKind::Int => {
-                self.advance();
-                Ok(Type::Primitive(PrimitiveType {
-                    kind: PrimitiveKind::Int,
-                    span: self.current_or_eof()?.span.clone(),
-                }))
-            }
-            TokenKind::Bool => {
-                self.advance();
-                Ok(Type::Primitive(PrimitiveType {
-                    kind: PrimitiveKind::Bool,
-                    span: self.current_or_eof()?.span.clone(),
-                }))
-            }
+        let current = self.current_or_eof()?;
+
+        let rv = match current.kind {
+            TokenKind::Int => Ok(Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Int,
+                span: current.span.clone(),
+            })),
+            TokenKind::Bool => Ok(Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Bool,
+                span: current.span.clone(),
+            })),
             _ => Err(anyhow!(LangError::ExpectedAnyToken {
                 expected: vec![TokenKind::Int, TokenKind::Bool,],
-                found: self.current_or_eof()?.kind.clone(),
-                span: self.current_or_eof()?.span.clone(),
+                found: current.kind.clone(),
+                span: current.span.clone(),
             })),
-        }
+        };
+
+        self.advance();
+        rv
     }
 
     fn block(&mut self) -> Result<Block> {

@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_duplicate_var() {
-        let src = "fn main() -> int { let x: int = 5; let y: int = 10; }";
+        let src = "fn main() -> int { let x: int = 5; let x: int = 10; return y; }";
         let ast = quick_parse(src);
         let errors = analyse(&ast);
 
@@ -175,5 +175,18 @@ mod tests {
         let errors = analyse(&ast);
 
         quick_errors(&errors, src);
+    }
+
+    #[test]
+    fn incompatible_return_type() {
+        let src = "fn main() -> int {\n\treturn 5;\n}\nfn foo() -> bool {\n\treturn 5;\n}";
+        let ast = quick_parse(src);
+        let errors = analyse(&ast);
+
+        quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
+
+        assert_eq!(errors[0].to_string(), "Incompatible return type");
     }
 }

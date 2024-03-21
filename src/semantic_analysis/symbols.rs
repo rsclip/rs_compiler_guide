@@ -24,7 +24,7 @@ pub struct SymbolTable<'a> {
 pub struct VarSymbol {
     /// The type of the variable
     pub ty: Type,
-    /// Span
+    /// Full span
     pub span: Span,
 }
 
@@ -35,8 +35,12 @@ pub struct FuncSymbol {
     pub params: Vec<Type>,
     /// Return type
     pub ret_ty: Type,
-    /// Span
+    /// Full
     pub span: Span,
+    /// Span of the identifier
+    pub ident_span: Span,
+    /// Signature span
+    pub sig_span: Span,
 }
 
 impl<'a> SymbolTable<'a> {
@@ -118,6 +122,8 @@ impl<'a> SymbolTable<'a> {
                     params,
                     ret_ty,
                     span: func.span.clone(),
+                    ident_span: func.ident.span.clone(),
+                    sig_span: Span::combine(&func.ident.span, &func.ty.span()),
                 },
             );
         }
