@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::errors::{SemanticError, Warning};
+use crate::errors::Warning;
 use crate::semantic_analysis::{Analysis, SymbolTable};
 use crate::{ast::*, token::Span};
 use anyhow::{anyhow, Error, Result};
@@ -71,7 +71,7 @@ impl Analysis for Block {
             errors.extend(statement.analyze(&mut new_table));
         }
 
-        errors.extend(self.check_dead_unreachable(&table));
+        errors.extend(self.check_dead_unreachable(&table).0);
 
         debug!("Block analysis complete, errors: {errors:?}");
 
@@ -80,11 +80,13 @@ impl Analysis for Block {
 }
 
 impl Block {
-    fn check_dead_unreachable(&self, table: &SymbolTable) -> Vec<Error> {
+    /// Check for dead and unreachable code
+    /// Returns errors and map of declared variables
+    fn check_dead_unreachable(&self, table: &SymbolTable) -> (Vec<Error>, HashMap<Ident, bool>) {
         debug!("Checking for dead and unreachable in block: {self:?}, table: {table:?}");
         let mut errors = Vec::new();
         let mut tmp_my_table = SymbolTable::child(table);
-        
+
         // map of variables declared in this scope, and whether they are used
         let mut declared_vars: HashMap<Ident, bool> = HashMap::new();
 
@@ -93,13 +95,12 @@ impl Block {
             debug!("TO REMOVE: Checking statement: {statement:?}, cur_idx: {cur_idx}, early_return: {early_return}");
             match statement {
                 Statement::Return(expr) => {
-                    if early_return { continue; }
+                    if early_return {
+                        continue;
+                    }
 
                     early_return = cur_idx + 1 != self.statements.len();
-                    let idents_used = expr
-                        .as_ref()
-                        .map(|e| e.idents_used())
-                        .unwrap_or_default();
+                    let idents_used = expr.as_ref().map(|e| e.idents_used()).unwrap_or_default();
 
                     for ident in &idents_used {
                         if let Some(declared) = declared_vars.get_mut(&ident) {
@@ -114,14 +115,36 @@ impl Block {
                         warn!("Error adding variable to table: {:?}, {:?}", statement, e);
                     }
                     declared_vars.insert(v.ident.clone(), false);
+
+                    // expression may use the variable
+                    for ident in &v.expression.idents_used() {
+                        if let Some(declared) = declared_vars.get_mut(&ident) {
+                            *declared = true;
+                        }
+                    }
                 }
                 Statement::Flow(flow) => {
-                    if early_return { continue; }
+                    if early_return {
+                        continue;
+                    }
 
                     let (_, if_guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
 
+                    // block may use a variable in this scope
+                    for (ident, used) in &flow.if_block.check_dead_unreachable(&tmp_my_table).1 {
+                        if let Some(declared) = declared_vars.get_mut(&ident) {
+                            *declared |= *used;
+                        }
+                    }
+
                     if let Some(else_block) = &flow.else_block {
                         let (_, else_guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
+                        for (ident, used) in &else_block.check_dead_unreachable(&tmp_my_table).1 {
+                            if let Some(declared) = declared_vars.get_mut(&ident) {
+                                *declared |= *used;
+                            }
+                        }
+
                         // in the case where both blocks have a return statement
                         // we can guarantee a return
                         if if_guaranteed && else_guaranteed {
@@ -133,35 +156,46 @@ impl Block {
                 }
                 _ => {}
             }
-        };
+        }
 
         if early_return {
             // get span of unreachable code
             let span = Span::combine(
-                &self.statements.first().map(|s| s.span()).unwrap_or(self.span.clone()),
-                &self.statements.last().map(|s| s.span()).unwrap_or(self.span.clone()),
+                &self
+                    .statements
+                    .first()
+                    .map(|s| s.span())
+                    .unwrap_or(self.span.clone()),
+                &self
+                    .statements
+                    .last()
+                    .map(|s| s.span())
+                    .unwrap_or(self.span.clone()),
             );
 
             errors.push(anyhow!(Warning::UnreachableCode(span)));
         };
 
-        for (ident, declared) in declared_vars {
-            if !declared && !ident.ident.starts_with("_"){
+        for (ident, declared) in &declared_vars {
+            if !declared && !ident.ident.starts_with("_") {
                 warn!("Unused variable: {:?}", ident);
-                errors.push(anyhow!(Warning::UnusedVariable(ident.clone(), ident.span.clone())));
+                errors.push(anyhow!(Warning::UnusedVariable(
+                    ident.clone(),
+                    ident.span.clone()
+                )));
             }
         }
 
         debug!("Dead and unreachable check complete, errors: {errors:?}");
 
-        errors
+        (errors, declared_vars)
     }
 
     /// Explore for all return statements
     /// Return:
     /// 1. The return value **types**
     /// 2. Whether or not it guarantees a return regardless of the path
-    /// 
+    ///
     /// Invalid return statements will be ignored
     pub fn get_return_stmts(&self, table: &mut SymbolTable) -> (Vec<Type>, bool) {
         let mut return_stmts_types = Vec::new();
@@ -187,16 +221,24 @@ impl Block {
                     if let Err(e) = tmp_my_table.add_var(v) {
                         warn!("Error adding variable to table: {:?}, {:?}", statement, e);
                     }
-                },
+                }
                 Statement::Flow(flow) => {
-                    let (returns, if_guaranteed) = flow.if_block.get_return_stmts(&mut tmp_my_table);
-                    debug!("If block return values (guaranteed {if_guaranteed}): {:?}", &returns);
+                    let (returns, if_guaranteed) =
+                        flow.if_block.get_return_stmts(&mut tmp_my_table);
+                    debug!(
+                        "If block return values (guaranteed {if_guaranteed}): {:?}",
+                        &returns
+                    );
                     return_stmts_types.extend(returns);
                     guaranteed_return &= if_guaranteed;
 
                     if let Some(else_block) = &flow.else_block {
-                        let (returns, else_guaranteed) = else_block.get_return_stmts(&mut tmp_my_table);
-                        debug!("Else block return values (guaranteed {else_guaranteed}): {:?}", &returns);
+                        let (returns, else_guaranteed) =
+                            else_block.get_return_stmts(&mut tmp_my_table);
+                        debug!(
+                            "Else block return values (guaranteed {else_guaranteed}): {:?}",
+                            &returns
+                        );
                         return_stmts_types.extend(returns);
                         guaranteed_return &= else_guaranteed;
 
@@ -214,8 +256,6 @@ impl Block {
 
         (return_stmts_types, guaranteed_return && early_return)
     }
-    
-    
 }
 
 impl Analysis for Expression {

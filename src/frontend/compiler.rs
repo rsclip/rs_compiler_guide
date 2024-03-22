@@ -1,15 +1,17 @@
 //! Frontend compiler
 //! Called through args
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use ariadne::Cache;
+use log::debug;
 use std::path::Path;
 
 use crate::ast::AST;
-use crate::errors::ErrorReporter;
+use crate::errors::{ErrorReporter, SemanticError};
 use crate::files::Files;
 use crate::lexer;
 use crate::parser::Parser;
+use crate::semantic_analysis::analyse;
 use crate::token::Token;
 
 pub struct Compiler {
@@ -75,11 +77,14 @@ impl Compiler {
     }
 
     fn compile_file(&mut self, file_path: String) -> Result<()> {
-        println!("Tokenizing: {}", &file_path);
+        debug!("Tokenizing: {}", &file_path);
         let tokens = self.lex_file(file_path.clone())?;
 
-        println!("Parsing: {}", &file_path);
-        let _program = self.parse_tokens(tokens, file_path)?;
+        debug!("Parsing: {}", &file_path);
+        let program = self.parse_tokens(tokens, file_path.clone())?;
+
+        debug!("Analysing: {}", &file_path);
+        self.analyse_ast(&program, file_path.clone())?;
 
         Ok(())
     }
@@ -89,10 +94,7 @@ impl Compiler {
         let ast = match parser.parse(file_id.clone()) {
             Ok(program) => program,
             Err(err) => {
-                let mut reporter = ErrorReporter::new(&mut self.files);
-                reporter
-                    .report(file_id, &err)
-                    .expect("Failed to report error");
+                self.report_errors(&vec![err], &file_id);
                 return Err(anyhow::anyhow!("Failed to parse file"));
             }
         };
@@ -121,17 +123,43 @@ impl Compiler {
         }
 
         if !errors.is_empty() {
-            let mut reporter = ErrorReporter::new(&mut self.files);
-
-            for err in errors {
-                reporter
-                    .report(file_id.clone(), &err)
-                    .expect("Failed to report error");
-            }
+            self.report_errors(&errors, &file_id);
 
             Err(anyhow::anyhow!("Failed to lex file"))
         } else {
             Ok(tokens)
+        }
+    }
+
+    fn analyse_ast(&mut self, ast: &AST, file_id: String) -> Result<()> {
+        // let errors = analyse(ast);
+        // split into errors & warnings by checking downcastref
+        let (errors, warnings): (Vec<Error>, Vec<Error>) =
+            analyse(ast).into_iter().partition(|e| {
+                if e.downcast_ref::<SemanticError>().is_some() {
+                    true
+                } else {
+                    false
+                }
+            });
+
+        self.report_errors(&errors, &file_id);
+        self.report_errors(&warnings, &file_id);
+
+        if !errors.is_empty() {
+            return Err(anyhow::anyhow!("Failed to analyse file"));
+        }
+
+        Ok(())
+    }
+
+    fn report_errors(&mut self, errors: &Vec<Error>, file_id: &String) {
+        let mut reporter = ErrorReporter::new(&mut self.files);
+
+        for err in errors {
+            reporter
+                .report(file_id.clone(), &err)
+                .expect("Failed to report error");
         }
     }
 }
