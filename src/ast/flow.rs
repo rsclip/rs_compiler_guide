@@ -110,7 +110,10 @@ impl Analysis for VariableDecl {
         match self.expression.get_type(table) {
             Ok(ty) => {
                 if ty != self.ty {
-                    warn!("Variable type does not match expression type: {:?}", self.ident.ident);
+                    warn!(
+                        "Variable type does not match expression type: {:?}",
+                        self.ident.ident
+                    );
                     errors.push(anyhow!(SemanticError::TypesDoNotMatch {
                         expected_type: self.ty.clone(),
                         expected_span: self.ty.span(),
@@ -140,7 +143,6 @@ impl Analysis for FlowStatement {
         // check if condition is a boolean
         debug!("Checking condition type: {:?}", self.condition);
         match self.condition.get_type(table) {
-
             Ok(ty) => {
                 let bool_type = Type::Primitive(PrimitiveType {
                     kind: PrimitiveKind::Bool,
@@ -174,4 +176,3 @@ impl Analysis for FlowStatement {
         errors
     }
 }
-

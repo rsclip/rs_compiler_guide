@@ -119,7 +119,10 @@ impl PrimaryExpression {
         if let Some(func) = table.get_fn(&ident) {
             // check if the number of arguments match
             if func.params.len() != args.len() {
-                warn!("Function call argument count mismatch: {:?}, {:?}", func, args);
+                warn!(
+                    "Function call argument count mismatch: {:?}, {:?}",
+                    func, args
+                );
 
                 // get the span of arguments supplied
                 let call_span = Span::combine(
@@ -146,7 +149,10 @@ impl PrimaryExpression {
                     };
 
                     if *param_ty != arg_ty {
-                        warn!("Function call argument type mismatch: {:?}, {:?}", param_ty, arg_ty);
+                        warn!(
+                            "Function call argument type mismatch: {:?}, {:?}",
+                            param_ty, arg_ty
+                        );
                         errors.push(anyhow!(SemanticError::TypesDoNotMatch {
                             expected_type: param_ty.clone(),
                             expected_span: param_ty.span(),
@@ -175,8 +181,15 @@ impl PrimaryExpression {
                 if let Some(var) = table.get_var(&i) {
                     Ok(var.ty.clone())
                 } else {
-                    log::debug!("During type-retrieval variable not declared: {:?} for table {:?}", i, table);
-                    Err(anyhow!(SemanticError::VariableNotDeclared(i.clone(), i.span.clone())))
+                    log::debug!(
+                        "During type-retrieval variable not declared: {:?} for table {:?}",
+                        i,
+                        table
+                    );
+                    Err(anyhow!(SemanticError::VariableNotDeclared(
+                        i.clone(),
+                        i.span.clone()
+                    )))
                 }
             }
             PrimaryExpression::Parenthesized(p) => p.get_type(table),
@@ -184,7 +197,10 @@ impl PrimaryExpression {
                 if let Some(func) = table.get_fn(&i) {
                     Ok(func.ret_ty.clone())
                 } else {
-                    Err(anyhow!(SemanticError::FunctionNotDeclared(i.clone(), i.span.clone())))
+                    Err(anyhow!(SemanticError::FunctionNotDeclared(
+                        i.clone(),
+                        i.span.clone()
+                    )))
                 }
             }
         }
@@ -195,7 +211,9 @@ impl PrimaryExpression {
             PrimaryExpression::Literal(_) => vec![],
             PrimaryExpression::Ident(i) => vec![i.clone()],
             PrimaryExpression::Parenthesized(p) => p.idents_used(),
-            PrimaryExpression::FunctionCall(_, args) => args.iter().flat_map(|a| a.idents_used()).collect(),
+            PrimaryExpression::FunctionCall(_, args) => {
+                args.iter().flat_map(|a| a.idents_used()).collect()
+            }
         }
     }
 }
@@ -206,7 +224,7 @@ impl Analysis for PrimaryExpression {
             PrimaryExpression::Literal(_) => vec![],
             PrimaryExpression::Ident(_) => vec![],
             PrimaryExpression::Parenthesized(p) => p.analyze(_table),
-            PrimaryExpression::FunctionCall(i, args) => self.analyze_fn_call(_table),
+            PrimaryExpression::FunctionCall(_, _) => self.analyze_fn_call(_table),
         }
     }
 }

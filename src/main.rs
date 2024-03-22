@@ -1,13 +1,13 @@
 extern crate anyhow;
 extern crate ariadne;
-extern crate gumdrop;
-extern crate thiserror;
-extern crate log;
 extern crate env_logger;
+extern crate gumdrop;
+extern crate log;
 extern crate test_log;
+extern crate thiserror;
 
-pub mod files;
 pub mod errors;
+pub mod files;
 pub mod lexer;
 pub mod token;
 #[macro_use]
@@ -19,8 +19,8 @@ pub mod frontend;
 
 use std::path::{Path, PathBuf};
 
-use gumdrop::Options;
 use env_logger::Env;
+use gumdrop::Options;
 
 /// The main entry point for the program
 #[derive(Debug, Options)]
@@ -62,7 +62,9 @@ fn compile(opts: Args) -> PathBuf {
     let mut compiler = frontend::Compiler::new(options);
 
     compiler.add_file(opts.file.clone());
-    let out_str = opts.out.unwrap_or(frontend::compiler::default_output_file(&opts.file));
+    let out_str = opts
+        .out
+        .unwrap_or(frontend::compiler::default_output_file(&opts.file));
     let out = Path::new(&out_str).to_path_buf();
 
     match compiler.compile(out.clone()) {
@@ -76,7 +78,7 @@ fn compile(opts: Args) -> PathBuf {
     out.clone()
 }
 
-fn main() {    
+fn main() {
     let args = Args::parse_args_default_or_exit();
 
     // Set up logging

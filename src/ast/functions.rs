@@ -50,16 +50,28 @@ impl PrettyPrint for Parameter {
 
 impl FunctionDecl {
     fn analyze_return_stmt(&self, table: &mut SymbolTable) -> Vec<Error> {
-        debug!("Analyzing return statements for function: {:?}", self.ident.ident);
+        debug!(
+            "Analyzing return statements for function: {:?}",
+            self.ident.ident
+        );
         let mut errors = Vec::new();
 
         // multiple return statements
-        debug!("Getting return statements for function: {:?}", self.ident.ident);
+        debug!(
+            "Getting return statements for function: {:?}",
+            self.ident.ident
+        );
         let (return_values, guaranteed_return) = self.block.get_return_stmts(table);
-        debug!("Return values: {:?}, guaranteed return: {:?}", return_values, guaranteed_return);
+        debug!(
+            "Return values: {:?}, guaranteed return: {:?}",
+            return_values, guaranteed_return
+        );
 
         if !guaranteed_return {
-            warn!("Function does not have a guaranteed return statement: {:?}", self.ident.ident);
+            warn!(
+                "Function does not have a guaranteed return statement: {:?}",
+                self.ident.ident
+            );
             if return_values.len() == 0 {
                 errors.push(anyhow!(SemanticError::MissingReturnStatement(
                     self.span.clone()
@@ -72,7 +84,10 @@ impl FunctionDecl {
         } else {
             for ty in return_values {
                 if ty != self.ty {
-                    warn!("Incompatible return type for function: {:?}", self.ident.ident);
+                    warn!(
+                        "Incompatible return type for function: {:?}",
+                        self.ident.ident
+                    );
                     errors.push(anyhow!(SemanticError::IncompatibleReturnType {
                         expected_type: self.ty.clone(),
                         expected_span: self.ty.span(),

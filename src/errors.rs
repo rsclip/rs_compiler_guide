@@ -390,7 +390,9 @@ impl Warning {
 
     fn help(&self) -> Option<String> {
         match self {
-            Warning::UnusedVariable(ident, _) => Some(format!("if intended, prefix with an underscore: `_{ident}`")),
+            Warning::UnusedVariable(ident, _) => Some(format!(
+                "if intended, prefix with an underscore: `_{ident}`"
+            )),
             _ => None,
         }
     }

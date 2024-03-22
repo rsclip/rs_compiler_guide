@@ -63,7 +63,7 @@ impl UnaryExpression {
     fn analyze_negation(&self, table: &SymbolTable) -> Vec<Error> {
         debug!("Analyzing Negation: {:?}, table: {:?}", self, table);
         let mut errors = Vec::new();
-        
+
         let expr: &Box<Expression> = match &self.kind {
             UnaryExpressionKind::Negation(e) => e,
             _ => unreachable!(),
@@ -79,16 +79,14 @@ impl UnaryExpression {
         };
 
         match expr_type {
-            Type::Primitive(ref prim_ty) => {
-                match prim_ty.kind {
-                    PrimitiveKind::Int | PrimitiveKind::Float => (),
-                    _ => errors.push(anyhow!(SemanticError::UnsupportedUnaryOperation {
-                        operator: "Negation".to_string(),
-                        operand_type: expr_type.clone(),
-                        span: self.span.clone(),
-                    })),
-                }
-            }
+            Type::Primitive(ref prim_ty) => match prim_ty.kind {
+                PrimitiveKind::Int | PrimitiveKind::Float => (),
+                _ => errors.push(anyhow!(SemanticError::UnsupportedUnaryOperation {
+                    operator: "Negation".to_string(),
+                    operand_type: expr_type.clone(),
+                    span: self.span.clone(),
+                })),
+            },
         }
 
         debug!("Negation analysis errors: {:?}", errors);
@@ -99,7 +97,7 @@ impl UnaryExpression {
     fn analyze_not(&self, table: &SymbolTable) -> Vec<Error> {
         debug!("Analyzing Not: {:?}, table: {:?}", self, table);
         let mut errors = Vec::new();
-        
+
         let expr: &Box<Expression> = match &self.kind {
             UnaryExpressionKind::Not(e) => e,
             _ => unreachable!(),
@@ -115,16 +113,14 @@ impl UnaryExpression {
         };
 
         match expr_type {
-            Type::Primitive(ref prim_ty) => {
-                match prim_ty.kind {
-                    PrimitiveKind::Bool => (),
-                    _ => errors.push(anyhow!(SemanticError::UnsupportedUnaryOperation {
-                        operator: "Not".to_string(),
-                        operand_type: expr_type.clone(),
-                        span: self.span.clone(),
-                    })),
-                }
-            }
+            Type::Primitive(ref prim_ty) => match prim_ty.kind {
+                PrimitiveKind::Bool => (),
+                _ => errors.push(anyhow!(SemanticError::UnsupportedUnaryOperation {
+                    operator: "Not".to_string(),
+                    operand_type: expr_type.clone(),
+                    span: self.span.clone(),
+                })),
+            },
         }
 
         debug!("Not analysis errors: {:?}", errors);
@@ -132,7 +128,10 @@ impl UnaryExpression {
     }
 
     pub fn get_type(&self, table: &SymbolTable) -> Result<Type> {
-        debug!("Getting type for UnaryExpression: {:?}, table: {:?}", self, table);
+        debug!(
+            "Getting type for UnaryExpression: {:?}, table: {:?}",
+            self, table
+        );
         let expr = match &self.kind {
             UnaryExpressionKind::Negation(e) => e,
             UnaryExpressionKind::Not(e) => e,
@@ -184,7 +183,10 @@ impl Analysis for BinaryExpression {
         debug!("lhs_type: {:?}, rhs_type: {:?}", lhs_type, rhs_type);
 
         if lhs_type != rhs_type {
-            warn!("Types do not match: lhs: {:?}, rhs: {:?}", lhs_type, rhs_type);
+            warn!(
+                "Types do not match: lhs: {:?}, rhs: {:?}",
+                lhs_type, rhs_type
+            );
             errors.push(anyhow!(SemanticError::TypesDoNotMatch {
                 expected_type: lhs_type.clone(),
                 expected_span: self.lhs.span(),
@@ -195,7 +197,10 @@ impl Analysis for BinaryExpression {
 
         // check if either side is not a valid type
         if !self.is_valid_type(&lhs_type) {
-            warn!("Unsupported binary operation: {:?}, lhs_type: {:?}", self.op.kind, lhs_type);
+            warn!(
+                "Unsupported binary operation: {:?}, lhs_type: {:?}",
+                self.op.kind, lhs_type
+            );
             errors.push(anyhow!(SemanticError::UnsupportedBinaryOperation {
                 operator: self.op.kind.to_string(),
                 operand_type: lhs_type,
@@ -204,7 +209,10 @@ impl Analysis for BinaryExpression {
         }
 
         if !self.is_valid_type(&rhs_type) {
-            warn!("Unsupported binary operation: {:?}, rhs_type: {:?}", self.op.kind, rhs_type);
+            warn!(
+                "Unsupported binary operation: {:?}, rhs_type: {:?}",
+                self.op.kind, rhs_type
+            );
             errors.push(anyhow!(SemanticError::UnsupportedBinaryOperation {
                 operator: self.op.kind.to_string(),
                 operand_type: rhs_type,
@@ -220,12 +228,18 @@ impl Analysis for BinaryExpression {
 
 impl BinaryExpression {
     pub fn get_type(&self, table: &SymbolTable) -> Result<Type> {
-        debug!("Getting type for BinaryExpression: {:?}, table: {:?}", self, table);
+        debug!(
+            "Getting type for BinaryExpression: {:?}, table: {:?}",
+            self, table
+        );
         let lhs_type = self.lhs.get_type(table)?;
         let rhs_type = self.rhs.get_type(table)?;
 
         if lhs_type != rhs_type {
-            warn!("Types do not match: lhs: {:?}, rhs: {:?}", lhs_type, rhs_type);
+            warn!(
+                "Types do not match: lhs: {:?}, rhs: {:?}",
+                lhs_type, rhs_type
+            );
             return Err(anyhow!(SemanticError::TypesDoNotMatch {
                 expected_type: lhs_type,
                 expected_span: self.lhs.span(),
@@ -253,12 +267,11 @@ impl BinaryExpression {
 
     fn is_valid_type(&self, ty: &Type) -> bool {
         match ty {
-            Type::Primitive(ref prim_ty) => {
-                match prim_ty.kind {
-                    PrimitiveKind::Int | PrimitiveKind::Float | PrimitiveKind::Bool => true,
-                    _ => false,
-                }
-            }
+            Type::Primitive(ref prim_ty) => match prim_ty.kind {
+                PrimitiveKind::Int | PrimitiveKind::Float | PrimitiveKind::Bool => true,
+                #[allow(unreachable_patterns)]
+                _ => false,
+            },
         }
     }
 
