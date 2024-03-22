@@ -52,7 +52,7 @@ pub fn analyse<'a>(ast: &'a AST) -> Vec<Error> {
                 if ty.kind != PrimitiveKind::Int {
                     errors.push(anyhow!(SemanticError::MainMustReturnInt(ty.span.clone())));
                 }
-            }
+            },
         }
     }
 
@@ -87,10 +87,7 @@ mod tests {
 
     /// Filter warnings from semantic analysis
     fn filter_warnings(errors: Vec<Error>) -> Vec<Error> {
-        errors
-            .into_iter()
-            .filter(|e| e.downcast_ref::<crate::errors::Warning>().is_none())
-            .collect()
+        errors.into_iter().filter(|e| e.downcast_ref::<crate::errors::Warning>().is_none()).collect()
     }
 
     /// Print errors
@@ -226,10 +223,7 @@ mod tests {
 
         assert_eq!(errors.len(), 1);
 
-        assert_eq!(
-            errors[0].to_string(),
-            "Return not guaranteed in all branches"
-        );
+        assert_eq!(errors[0].to_string(), "Return not guaranteed in all branches");
     }
 
     #[test]
@@ -266,10 +260,7 @@ mod tests {
 
         assert_eq!(errors.len(), 1);
 
-        assert_eq!(
-            errors[0].to_string(),
-            "Return not guaranteed in all branches"
-        );
+        assert_eq!(errors[0].to_string(), "Return not guaranteed in all branches");
     }
 
     #[test]

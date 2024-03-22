@@ -5,6 +5,10 @@ extern crate gumdrop;
 extern crate log;
 extern crate test_log;
 extern crate thiserror;
+extern crate cranelift;
+extern crate cranelift_codegen;
+extern crate cranelift_module;
+extern crate cranelift_native;
 
 pub mod errors;
 pub mod files;
@@ -14,8 +18,8 @@ pub mod token;
 pub mod parser;
 pub mod ast;
 pub mod semantic_analysis;
-
 pub mod frontend;
+pub mod codegen;
 
 use std::path::{Path, PathBuf};
 
