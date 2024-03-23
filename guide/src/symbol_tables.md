@@ -186,3 +186,10 @@ Within a symbol entry, you can store additional information about the symbol. Th
     - This can help enforce language-specific rules and optimizations
 
 Using these attributes will help you perform more advanced semantic analysis, such as type checking, scope resolution, and error reporting.
+
+# Resources
+- [Symbol Table - Wikipedia](https://en.wikipedia.org/wiki/Symbol_table)
+- [Compiler Design: Symbol Table - GeeksforGeeks](https://www.geeksforgeeks.org/symbol-table-compiler/)
+- [Symbol Table Lecture Slides](https://home.adelphi.edu/~siegfried/cs372/372l3.pdf) at Adelphi University
+- [Symbol Table - Tutorialspoint](https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm)
+- [Scope Stacks - Persistant Array](https://en.wikipedia.org/wiki/Persistent_array)
