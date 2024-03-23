@@ -1,3 +1,3 @@
-# Type Checking
-# Scope analysis
-# Semantic errors
+# Semantic Analysis
+
+Semantic Analysis is a stage in the compilation process where the compiler checks the program for semantic errors; they're errors that occur when the program is syntactically correct but the meaning of the program is incorrect. For example, if you try to add a number to a string, the parser will not catch this error during parsing because the syntax is correct. However, the program will not run correctly because you cannot add a number to a string.
