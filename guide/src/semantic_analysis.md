@@ -12,3 +12,5 @@ Semantic Analysis is a stage in the compilation process where the compiler check
 - [Algorithm W](https://raw.githubusercontent.com/mgrabmueller/AlgorithmW/master/pdf/AlgorithmW.pdf) by Martin Grabmüller
 - [Hindley-Milner System](https://pfudke.wordpress.com/2014/11/20/hindley-milner-type-inference-a-practical-example-2/)
 - [OCaml's type checker](https://okmij.org/ftp/ML/generalization.html)
+- [Box](https://doc.rust-lang.org/std/boxed/struct.Box.html)
+- [Memory Stack and Heap](https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/the-stack-and-the-heap.html)

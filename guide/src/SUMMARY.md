@@ -21,6 +21,5 @@
 - [Semantic Analysis](./semantic_analysis.md)
     - [Symbol Tables](./symbol_tables.md)
     - [Type Checking](./type_checking.md)
-    - [Control Flow Analysis](./control_flow_analysis.md)
     - [Implementing a Symbol Table](./implementing_a_symbol_table.md)
     - [Implementing a Semantic Analyzer](./implementing_a_semantic_analyzer.md)
