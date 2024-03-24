@@ -14,6 +14,7 @@ However, we do not want to allow people to be able to call variables as if they 
 
 A Variable Symbol would contain the type of the variable, as well as the span (as usual). Let's quickly define `VarSymbol`:
 
+In `src/semantic_analysis/symbol_table.rs`:
 ```rust,ignore
 use crate::ast::*;
 use crate::token::Span;
@@ -152,6 +153,8 @@ impl<'a> SymbolTable<'a> {
     }
 }
 ```
+
+> Make sure you make implementations for `.span()` for your AST nodes!
 
 ### Adding and Retrieving Functions
 Functions follow an identical to variables, although you may want to handle overloading functions here. I don't like that concept, so we won't be implementing that here.

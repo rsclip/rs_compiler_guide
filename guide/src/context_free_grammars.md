@@ -37,7 +37,7 @@ CFGs are defined as a 4-tuple \\(G = (N, \sum, P, S)\\), where:
 - \\(\sum\\) is a finite set of terminal symbols, **disjoint** from \\(N\\).
     - "terminal" symbols are symbols that cannot be replaced by other symbols. They are the smallest units of the language.
     - For example, the `+` symbol in the previous example is a terminal symbol.
-- \\(P\\) is a finite set of production rules, where each rule is of the form \\(A \rightarrow \alpha\\), where \\(A \in N\\) and \\(\alpha \in (N \cup \sum)^*\\) (a string of symbols from \\((N \cup \sum)^*\\)).
+- \\(P\\) is a finite set of production rules, where each rule is of the form \\(A \rightarrow \alpha\\), where \\(A \in N\\) and \\( \alpha \in (N \cup \sum)^* \\) (a string of symbols from \\((N \cup \sum)^*\\)).
     - Each production rule defines how a non-terminal symbol can be replaced by a sequence of other symbols.
     - For example, the production rule `expr -> expr + term` in the previous example.
     - \\((N \cup \sum)^*\\) denotes the set of all strings of symbols that can be formed from the union of \\(N\\) and \\(\sum\\).

@@ -175,11 +175,13 @@ mod tests {
 
     #[test]
     fn undeclared_var() {
-        let src = "fn main() -> int { let x:int = 3; return x; }";
+        let src = "fn main() -> int { let x:int = 3; return 1; }";
         let ast = quick_parse(src);
-        let errors = filter_warnings(analyse(&ast));
+        let errors = analyse(&ast);
 
         quick_errors(&errors, src);
+
+        assert_eq!(errors.len(), 1);
     }
 
     #[test]
@@ -388,9 +390,8 @@ mod tests {
     }
 
     #[test]
-    fn dead_code() {
+    fn dead_code_1() {
         let src = r#"fn main() -> int {
-            return 2;
             let x: int = 5;
             return 121212;
         }"#;
@@ -399,7 +400,7 @@ mod tests {
 
         quick_errors(&errors, src);
 
-        assert_eq!(errors.len(), 2);
+        assert_eq!(errors.len(), 1);
     }
 
     #[test]

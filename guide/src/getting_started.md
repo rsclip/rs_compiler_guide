@@ -23,6 +23,11 @@ This guide will use [gumdrop](https://crates.io/crates/gumdrop) since our compil
 **Code Generation**  
 This guide (un)fortunately won't cover the specific code-generation as it's very out-of-scope and complex, not suitable for a beginner guide.
 
+**Debugging**
+[log](https://crates.io/crates/log) + [env_logger](https://crates.io/crates/env_logger) will help us debug our compiler by introducing macros like `debug!`, etc. They will not be displayed in code examples, but I recommend using them.
+
+Additionally, learn how to set up a debugger in your IDE. This will be incredibly useful for debugging your compiler. Here's a guide for [Linux](https://code.visualstudio.com/docs/cpp/cpp-debug-linux) and [Windows](https://code.visualstudio.com/docs/cpp/cpp-debug-windows).
+
 [Cranelift](https://cranelift.dev/) is a fast compiler backend made in Rust we'll use.
 #### Want a library for lexing/parsing?
 Although this guide is intended for writing these by hand, you can always rely on more industrial alternatives. I'd recommend using these only if you have written a lexer and parser by hand. Also, the errors may or may not be as pretty and insightful.

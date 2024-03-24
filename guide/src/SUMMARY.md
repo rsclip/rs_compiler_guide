@@ -23,3 +23,6 @@
     - [Type Checking](./type_checking.md)
     - [Implementing a Symbol Table](./implementing_a_symbol_table.md)
     - [Implementing a Semantic Analyzer](./implementing_a_semantic_analyzer.md)
+- [Intermediate Representation](./intermediate_representation.md)
+- [Code Generation](./code_generation.md)
+- [Postlude](./postlude.md)

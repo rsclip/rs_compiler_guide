@@ -92,7 +92,6 @@ impl Block {
 
         let mut early_return = false;
         for (cur_idx, statement) in self.statements.iter().enumerate() {
-            debug!("TO REMOVE: Checking statement: {statement:?}, cur_idx: {cur_idx}, early_return: {early_return}");
             match statement {
                 Statement::Return(expr) => {
                     if early_return {
@@ -111,6 +110,10 @@ impl Block {
                     debug!("Found return statement at {cur_idx}, early_return: {early_return}, idents_used: {idents_used:?}, stmt: {statement:?}");
                 }
                 Statement::VariableDecl(v) => {
+                    if early_return {
+                        continue;
+                    }
+
                     if let Err(e) = tmp_my_table.add_var(v) {
                         warn!("Error adding variable to table: {:?}, {:?}", statement, e);
                     }
