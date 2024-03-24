@@ -1,0 +1,1180 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Implementing a Semantic Analyzer - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html" class="active"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="implementing-a-semantic-analyzer"><a class="header" href="#implementing-a-semantic-analyzer">Implementing a Semantic Analyzer</a></h1>
+<p>Now that we have a Symbol Table struct, we'll be able to implement a semantic analyzer. This process is pretty difficult and can be challenging to debug, but try not to get discouraged! It's a very rewarding process.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Our parser was quite limited in retrospect; it would terminate and fail to perform error recovery. This is intended, as it's much more simple to implement a parser that fails on the first error. However, this is not the case for a semantic analyzer. We want to collect as many errors as possible and report them all at once.</p>
+<p>Let's implement some sort of analysis algorithm which will aggregate all errors found in the program. We'll start by creating a new module <code>analysis</code> in <code>src/semantic_analysis/</code> if you haven't already.</p>
+<h2 id="analysis-trait"><a class="header" href="#analysis-trait"><code>Analysis</code> trait</a></h2>
+<p>Again, instead of diving in, let's outline exactly how we want the process to look like. We could have functions (e.g. <code>analyze_fn</code>, <code>analyze_block</code>, etc.) that take in the Symbol Table and the AST node to analyze. This way, we can easily traverse the AST and check for errors.</p>
+<p>In order to make the code cleaner, however, it would be more idiomatic to introduce a new <strong>trait</strong> that would allow us to call <code>analyze</code> on any AST node. This way, we can easily call <code>analyze</code> on any node and have the node analyze itself.</p>
+<p>Let's declare the trait in <code>src/semantic_analysis/traits.rs</code>:</p>
+<pre><code class="language-rust ignore">use super::symbols::SymbolTable;
+
+use anyhow::Error;
+
+/// Trait for Semantic Analysis
+///
+/// When implementing, you are expected to analyse
+/// every part of the node, aggregating and returning
+/// *all* errors found.
+pub trait Analysis {
+    /// Analyze the node
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt;;
+}</code></pre>
+<p>We take in the current symbol table to represent the current scope. We'll also return a vector of <code>Error</code>s, which will contain all errors found in the node.</p>
+<h2 id="the-main-analysis-function"><a class="header" href="#the-main-analysis-function">The main analysis function</a></h2>
+<p>Before we implement <code>Analysis</code> on each AST node, let's make an interface for us to perform analysis on an entire program.</p>
+<p>Within this function, we'll first create a new <code>SymbolTable</code> to represent the global scope. We can then call <code>analyze</code> on the AST itself, passing in the global scope.</p>
+<p>In <code>src/semantic_analysis/analysis.rs</code>:</p>
+<pre><code class="language-rust ignore">use super::symbols::SymbolTable;
+use super::traits::Analysis;
+use crate::ast::*;
+use crate::errors::SemanticError;
+use crate::token::Span;
+use anyhow::{anyhow, Error};
+
+pub fn analyse&lt;'a&gt;(ast: &amp;'a AST) -&gt; Vec&lt;Error&gt; {
+    let program = &amp;ast.program;
+
+    let mut global_table = SymbolTable::new();
+    let mut errors = Vec::new();
+
+    // let AST analyse itself
+    errors.extend(ast.analyze(&amp;mut global_table));
+
+    errors
+}</code></pre>
+<p>There is a fundamental flaw in this design; it does not analyze the functions at all, so the symbol table initializes as empty. We can implement this either in the AST node, or we can do that here.</p>
+<p>Since it is a little different than how our typical <code>impl Analaysis for ...</code> would look like, let's implement it here.</p>
+<p>We'll recognise all functions by iterating through all <code>Item</code>s in the program, registering them within the symbol table.</p>
+<p>The presence of the <code>main</code> function is also required, so we'll flag an error if it is not found. We also would like this to return <code>int</code>, which would represent the exit code of the program, akin to C++.</p>
+<p>Let's implement this:</p>
+<pre><code class="language-rust ignore">    // ...
+    let mut errors = Vec::new();
+
+    // recognise all functions
+    let mut main_node: Option&lt;&amp;FunctionDecl&gt; = None;
+
+    for item in &amp;program.items {
+        match item {
+            Item::FunctionDecl(f) =&gt; {
+                if f.ident.ident == "main" {
+                    main_node = Some(f);
+                }
+
+                if let Err(e) = global_table.add_fn(f) {
+                    errors.push(e);
+                }
+            }
+        }
+    }
+
+    if main_node.is_none() {
+        errors.push(anyhow!(SemanticError::MissingMainFunction(Span::default())));
+    } else {
+        // ensure return type is int
+        let ret_ty = main_node.unwrap().ty.clone();
+        match ret_ty {
+            Type::Primitive(ty) =&gt; {
+                if ty.kind != PrimitiveKind::Int {
+                    errors.push(anyhow!(SemanticError::MainMustReturnInt(ty.span.clone())));
+                }
+            },
+        }
+    }
+
+    // let AST analyse itself
+    errors.extend(ast.analyze(&amp;mut global_table));
+
+    // ...</code></pre>
+<h2 id="implementing-our-analysis-trait"><a class="header" href="#implementing-our-analysis-trait">Implementing our <code>Analysis</code> trait</a></h2>
+<p>Here comes the difficult and long part, we picked this hell for ourselves.</p>
+<h3 id="implementing-analysis-for-ast-and-item"><a class="header" href="#implementing-analysis-for-ast-and-item">Implementing <code>Analysis</code> for <code>AST</code> and <code>Item</code></a></h3>
+<p>This is thankfully pretty simple, we just need to go through each item in <code>AST</code> and call <code>analyze</code> on them. For each item, we need to match what kind of item it is and call <code>analyze</code> on it.</p>
+<pre><code class="language-rust ignore">impl Analysis for AST {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        for item in &amp;self.program.items {
+            errors.extend(item.analyze(table));
+        }
+
+        errors
+    }
+}
+
+impl Analysis for Item {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        match self {
+            Item::FunctionDecl(f) =&gt; f.analyze(table),
+        }
+    }
+}</code></pre>
+<p>As tempting as it may be to implement <code>Analysis</code> for <code>FunctionDecl</code> next, let's continue going in order.</p>
+<h2 id="implementing-analysis-for-block"><a class="header" href="#implementing-analysis-for-block">Implementing <code>Analysis</code> for <code>Block</code></a></h2>
+<p>When analysing a <code>Block</code>, it will introduce a new <strong>scope</strong>. To make things simple, when we analyze a function it will introduce a scope for the parameters, and the block will introduce its own scope.</p>
+<p>Within a block, we'd simply analyze each statement for errors.</p>
+<pre><code class="language-rust ignore">impl Analysis for Block {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+        let mut new_table = SymbolTable::child(table);
+
+        for statement in &amp;self.statements {
+            debug!("Analyzing statement: {statement:?}");
+            errors.extend(statement.analyze(&amp;mut new_table));
+        }
+
+        errors
+    }
+}</code></pre>
+<p>This analyzes each statement within the block. There's also two other problems we would like to solve:
+12. If the block is a function body, we need a way to
+1. See if the return for the block is guaranteed or not, taking into account all possible paths
+2. Get all the types for these return expressions
+2. A block may have <strong>dead code</strong> (unreachable code), and <strong>unused variables</strong></p>
+<p>We'll ignore determining whether conditions are guaranteed or not.</p>
+<blockquote>
+<p><strong>Performance Warning</strong></p>
+<p>This is a very naive implementation, and will be very slow. Try to introduce caching and memoization to speed up the process.</p>
+</blockquote>
+<p>We'll solve the first problem by introducing a method; <code>get_return_stmts</code>. This will check if the block is guaranteed to return, and get all the return types.</p>
+<p>The process will follow:</p>
+<ol>
+<li>Iterate through all the statements. If the statement is:
+<ul>
+<li><strong>Return</strong>
+<ol>
+<li>Mark as guaranteed return, and early return</li>
+<li>Add expression type</li>
+</ol>
+</li>
+<li><strong>Variable Declaration</strong>
+<ol>
+<li>Add variable to the symbol table (may be referenced later)</li>
+</ol>
+</li>
+<li><strong>Flow statement</strong> (<code>if</code>)
+<ol>
+<li>Get the return statement expressions, and whether the block is independently guaranteed to return</li>
+<li>Add expression types</li>
+<li><code>guaranteed_return *= if_block_guaranteed_return</code> (if block is guaranteed to return, then the entire block is guaranteed to return)</li>
+<li>If there is an <code>else</code> block:
+<ol>
+<li>Do the same process as above</li>
+<li>If both blocks are guaranteed, then the entire block is guaranteed. Set the early return flag to true.</li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>Return the statement types, and whether the block is guaranteed to return</li>
+</ol>
+<p>Let's implement this helper method:</p>
+<pre><code class="language-rust ignore">impl Block {
+    pub fn get_return_stmts(&amp;self, table: &amp;mut SymbolTable) -&gt; (Vec&lt;Type&gt;, bool) {
+        let mut return_stmts_types = Vec::new();
+        let mut guaranteed_return = true;
+        let mut tmp_my_table = SymbolTable::child(table);
+        let mut early_return = false;
+
+        for statement in &amp;self.statements {
+            match statement {
+                Statement::Return(stmt) =&gt; {
+                    if let Some(expr) = stmt {
+                        if let Ok(ty) = expr.get_type(&amp;tmp_my_table) {
+                            return_stmts_types.push(ty.clone());
+                        }
+                    }
+                    guaranteed_return = true;
+                    early_return = true;
+                    break;
+                }
+                Statement::VariableDecl(v) =&gt; {
+                    // recover error, add your own debugging stuff
+                    if let Err(e) = tmp_my_table.add_var(v) {}
+                }
+                Statement::Flow(flow) =&gt; {
+                    let (returns, if_guaranteed) = flow.if_block.get_return_stmts(&amp;mut tmp_my_table);
+
+                    return_stmts_types.extend(returns);
+                    guaranteed_return &amp;= if_guaranteed;
+
+                    if let Some(else_block) = &amp;flow.else_block {
+                        let (returns, else_guaranteed) = else_block.get_return_stmts(&amp;mut tmp_my_table);
+
+                        return_stmts_types.extend(returns);
+                        guaranteed_return &amp;= else_guaranteed;
+
+                        // in the case where both blocks have a return statement
+                        // we can guarantee a return
+                        if if_guaranteed &amp;&amp; else_guaranteed {
+                            early_return = true;
+                            break;
+                        }
+                    }
+                }
+                _ =&gt; {}
+            }
+        }
+
+        (return_stmts_types, guaranteed_return &amp;&amp; early_return)
+    }
+}</code></pre>
+<p>Next, we need to introduce a method to check for dead code and unused variables: <code>check_dead_unreachable</code>.</p>
+<p>Here, we'll want to check for dead and unreachable code, aggregating the errors and warnings we'll find. We would also like to check for which variables are declared.</p>
+<p>The process is as follows:</p>
+<ol>
+<li>Set the <code>early_return</code> flag to <code>false</code>. We need this to check for unreachable code.</li>
+<li>Iterate through all the statements. If the statement is:
+<ul>
+<li><strong>Return</strong>
+<ol>
+<li>If <code>early_return</code> is true, then skip the statement. It will never execute.</li>
+<li>Check whether it's an early return</li>
+<li>Set used variables in expression as used</li>
+</ol>
+</li>
+<li><strong>Variable Declaration</strong>
+<ol>
+<li>If <code>early_return</code> is true, then skip the statement. It will never execute.</li>
+<li>Add the variable to the symbol table. Ignore if error.</li>
+<li>Set used variables in expression as used</li>
+</ol>
+</li>
+<li><strong>Flow statement</strong> (<code>if</code>)
+<ol>
+<li>If <code>early_return</code> is true, then skip the statement. It will never execute.</li>
+<li>Get whether the block is guaranteed to return</li>
+<li>Set used variables in block as used</li>
+<li>If there's an <code>else</code> block:
+<ol>
+<li>Get whether the block is guaranteed to return</li>
+<li>Set used variables in block as used</li>
+<li>If both blocks are guaranteed to return, then set <code>early_return</code> to true</li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>If there's an early return:
+<ol>
+<li>Raise a warning for the section of dead code following the return statement</li>
+</ol>
+</li>
+<li>For each undeclared variable, raise an error</li>
+<li>Return all errors/warnings, and the variables declared</li>
+</ol>
+<p>Let's implement this helper method:</p>
+<pre><code class="language-rust ignore">impl Block {
+    fn check_dead_unreachable(&amp;self, table: &amp;SymbolTable) -&gt; (Vec&lt;Error&gt;, HashMap&lt;Ident, bool&gt;) {
+        let mut errors = Vec::new();
+        let mut tmp_my_table = SymbolTable::child(table);
+
+        // map of variables declared in this scope, and whether they are used
+        let mut declared_vars: HashMap&lt;Ident, bool&gt; = HashMap::new();
+
+        let mut early_return = false;
+        for (cur_idx, statement) in self.statements.iter().enumerate() {
+            match statement {
+                Statement::Return(expr) =&gt; {
+                    if early_return {
+                        continue;
+                    }
+
+                    early_return = cur_idx + 1 != self.statements.len();
+                    let idents_used = expr.as_ref().map(|e| e.idents_used()).unwrap_or_default();
+
+                    for ident in &amp;idents_used {
+                        if let Some(declared) = declared_vars.get_mut(&amp;ident) {
+                            *declared = true;
+                        }
+                    }
+                }
+                Statement::VariableDecl(v) =&gt; {
+                    if early_return {
+                        continue;
+                    }
+
+                    if let Err(e) = tmp_my_table.add_var(v) {}
+                    declared_vars.insert(v.ident.clone(), false);
+
+                    // expression may use the variable
+                    for ident in &amp;v.expression.idents_used() {
+                        if let Some(declared) = declared_vars.get_mut(&amp;ident) {
+                            *declared = true;
+                        }
+                    }
+                }
+                Statement::Flow(flow) =&gt; {
+                    if early_return {
+                        continue;
+                    }
+
+                    let (_, if_guaranteed) = flow.if_block.get_return_stmts(&amp;mut tmp_my_table);
+
+                    // block may use a variable in this scope
+                    for (ident, used) in &amp;flow.if_block.check_dead_unreachable(&amp;tmp_my_table).1 {
+                        if let Some(declared) = declared_vars.get_mut(&amp;ident) {
+                            *declared |= *used;
+                        }
+                    }
+
+                    if let Some(else_block) = &amp;flow.else_block {
+                        let (_, else_guaranteed) = else_block.get_return_stmts(&amp;mut tmp_my_table);
+                        for (ident, used) in &amp;else_block.check_dead_unreachable(&amp;tmp_my_table).1 {
+                            if let Some(declared) = declared_vars.get_mut(&amp;ident) {
+                                *declared |= *used;
+                            }
+                        }
+
+                        // in the case where both blocks have a return statement
+                        // we can guarantee a return
+                        if if_guaranteed &amp;&amp; else_guaranteed {
+                            early_return = true;
+                            break;
+                        }
+                    }
+                }
+                _ =&gt; {}
+            }
+        }
+
+        if early_return {
+            // get span of unreachable code
+            let span = Span::combine(
+                &amp;self
+                    .statements
+                    .first()
+                    .map(|s| s.span())
+                    .unwrap_or(self.span.clone()),
+                &amp;self
+                    .statements
+                    .last()
+                    .map(|s| s.span())
+                    .unwrap_or(self.span.clone()),
+            );
+
+            errors.push(anyhow!(Warning::UnreachableCode(span)));
+        };
+
+        for (ident, declared) in &amp;declared_vars {
+            if !declared &amp;&amp; !ident.ident.starts_with("_") {
+                errors.push(anyhow!(Warning::UnusedVariable(
+                    ident.clone(),
+                    ident.span.clone()
+                )));
+            }
+        }
+
+        (errors, declared_vars)
+    }
+}</code></pre>
+<p>Be sure to add this to the <code>Analysis</code> implementation:</p>
+<pre><code class="language-rust ignore">impl Analysis for Block {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        debug!("Analyzing block: {self:?}, table: {table:?}");
+        let mut errors = Vec::new();
+        let mut new_table = SymbolTable::child(table);
+
+        for statement in &amp;self.statements {
+            debug!("Analyzing statement: {statement:?}");
+            errors.extend(statement.analyze(&amp;mut new_table));
+        }
+
+        errors.extend(self.check_dead_unreachable(&amp;table).0);
+
+        debug!("Block analysis complete, errors: {errors:?}");
+
+        errors
+    }
+}</code></pre>
+<p>We do <strong>not</strong> check for guaranteed return here, since we don't have enough context of the block (it may be a flow block, not a function body). The function body will handle this.</p>
+<h2 id="implementing-analysis-for-expression"><a class="header" href="#implementing-analysis-for-expression">Implementing <code>Analysis</code> for <code>Expression</code></a></h2>
+<p>Since this is an <code>enum</code>, we can call <code>analyze</code> on each variant.</p>
+<pre><code class="language-rust ignore">impl Analysis for Expression {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        match self {
+            Expression::Primary(p) =&gt; p.analyze(table),
+            Expression::Unary(u) =&gt; u.analyze(table),
+            Expression::Binary(b) =&gt; b.analyze(table),
+        }
+    }
+}</code></pre>
+<p>However, we have some methods we may need to use.</p>
+<p>We called <code>get_type</code> to evaluate what the expression may be. We also called <code>idents_used</code> to get all the identifiers used in the expression. We'll need to implement these methods.</p>
+<pre><code class="language-rust ignore">impl Expression {
+    pub fn get_type(&amp;self, table: &amp;SymbolTable) -&gt; Result&lt;Type&gt; {
+        match self {
+            Expression::Primary(p) =&gt; p.get_type(table),
+            Expression::Unary(u) =&gt; u.get_type(table),
+            Expression::Binary(b) =&gt; b.get_type(table),
+        }
+    }
+
+    pub fn idents_used(&amp;self) -&gt; Vec&lt;Ident&gt; {
+        match self {
+            Expression::Primary(p) =&gt; p.idents_used(),
+            Expression::Unary(u) =&gt; u.idents_used(),
+            Expression::Binary(b) =&gt; b.idents_used(),
+        }
+    }
+}</code></pre>
+<h2 id="implementing-analysis-for-statement"><a class="header" href="#implementing-analysis-for-statement">Implementing <code>Analysis</code> for <code>Statement</code></a></h2>
+<p>This is similar to <code>Expression</code>, we'll call <code>analyze</code> on each variant. The return statements variant contains a reference to an expression, so we'll need to call <code>analyze</code> on that.</p>
+<pre><code class="language-rust ignore">impl Analysis for Statement {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        match self {
+            Statement::Expression(e) =&gt; e.analyze(table),
+            Statement::VariableDecl(v) =&gt; v.analyze(table),
+            Statement::Flow(f) =&gt; f.analyze(table),
+            Statement::Return(e) =&gt; e.as_ref().map_or_else(|| vec![], |e| e.analyze(table)),
+        }
+    }
+}</code></pre>
+<h2 id="implementing-analysis-for-variabledecl"><a class="header" href="#implementing-analysis-for-variabledecl">Implementing <code>Analysis</code> for <code>VariableDecl</code></a></h2>
+<p>When analyzing a variable declaration, we'd get given the current scope. We would like to declare the current variable to the symbol table. We'd also like to check whether the expression is the same as the variable type.</p>
+<p>Let's implement:</p>
+<pre><code class="language-rust ignore">impl Analysis for VariableDecl {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        // add variable to symbol table
+        match table.add_var(&amp;self) {
+            Ok(_) =&gt; (),
+            Err(e) =&gt; errors.push(e),
+        };
+
+        // check if expression type matches variable type
+        match self.expression.get_type(table) {
+            Ok(ty) =&gt; {
+                if ty != self.ty {
+                    errors.push(anyhow!(SemanticError::TypesDoNotMatch {
+                        expected_type: self.ty.clone(),
+                        expected_span: self.ty.span(),
+                        found_type: ty,
+                        found_span: self.expression.span(),
+                    }));
+                }
+            }
+            Err(e) =&gt; {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        errors
+    }
+}</code></pre>
+<h2 id="implementing-analysis-for-flowstatement"><a class="header" href="#implementing-analysis-for-flowstatement">Implementing <code>Analysis</code> for <code>FlowStatement</code></a></h2>
+<p>To analyze the flow statement, we'd need to check a few things. The structure is a little complex, so let's look at a typical flow statement and identify what we need to determine:</p>
+<pre><code class="language-rust ignore">if a == 1 {
+    return 1;
+} else {
+    return 2;
+}</code></pre>
+<ol>
+<li>We need to check the condition expression. This should be a boolean.</li>
+<li>We need to check the if block. Pretty simple.</li>
+<li>If there's an else block, we need to check that too.</li>
+</ol>
+<p>Let's implement this:</p>
+<pre><code class="language-rust ignore">
+impl Analysis for FlowStatement {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        // check if condition is a boolean
+        match self.condition.get_type(table) {
+            Ok(ty) =&gt; {
+                let bool_type = Type::Primitive(PrimitiveType {
+                    kind: PrimitiveKind::Bool,
+                    span: Span::default(),
+                });
+
+                if ty != bool_type {
+                    errors.push(anyhow!(SemanticError::NonBooleanCondition {
+                        found_type: ty,
+                        found_span: self.condition.span(),
+                    }));
+                }
+            }
+            Err(e) =&gt; {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        errors.extend(self.if_block.analyze(table));
+
+        if let Some(else_block) = &amp;self.else_block {
+            errors.extend(else_block.analyze(table));
+        }
+
+        errors
+    }
+}</code></pre>
+<h2 id="implementing-analysis-for-functiondecl"><a class="header" href="#implementing-analysis-for-functiondecl">Implementing <code>Analysis</code> for <code>FunctionDecl</code></a></h2>
+<p>When analyzing a function declaration, we'd need to do a few things:</p>
+<ol>
+<li>Make sure all return statements match the function type</li>
+<li>Make sure the function is guaranteed to return</li>
+<li>Analyze each parameter</li>
+<li>Analyze the block</li>
+</ol>
+<p>Let's implement the basic analysis function:</p>
+<pre><code class="language-rust ignore">impl Analysis for FunctionDecl {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        errors.extend(self.analyze_return_stmt(table));
+
+        let mut new_table = SymbolTable::child(table);
+        let param_errors = self.analyze_parameters(&amp;mut new_table);
+        errors.extend(param_errors);
+
+        // analyze the block
+        errors.extend(self.block.analyze(&amp;mut new_table));
+
+        errors
+    }
+}</code></pre>
+<p>We used a few functions we haven't made yet. Let's implement them.</p>
+<p>The <code>analyze_return_stmt</code> function will simply analyze the first two criteria mentioned:</p>
+<ol>
+<li>Make sure all return statements match the function type</li>
+<li>Make sure the function is guaranteed to return</li>
+</ol>
+<p>This would look at the block, and get the return statements. If there are no return statements, or the return statements do not match the function type, we'll raise an error.</p>
+<p>Thankfully, we defined the <code>get_return_stmts</code> function in <code>Block</code> earlier; we can use that to our advantage.</p>
+<pre><code class="language-rust ignore">impl FunctionDecl {
+    fn analyze_return_stmt(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        // multiple return statements
+        let (return_values, guaranteed_return) = self.block.get_return_stmts(table);
+
+        if !guaranteed_return {
+            if return_values.len() == 0 {
+                errors.push(anyhow!(SemanticError::MissingReturnStatement(
+                    self.span.clone()
+                )));
+            } else {
+                errors.push(anyhow!(SemanticError::ReturnNotGuaranteed(
+                    self.span.clone()
+                )));
+            }
+        } else {
+            for ty in return_values {
+                if ty != self.ty {
+                    errors.push(anyhow!(SemanticError::IncompatibleReturnType {
+                        expected_type: self.ty.clone(),
+                        expected_span: self.ty.span(),
+                        found_type: ty.clone(),
+                        found_span: ty.span(),
+                    }));
+                }
+            }
+        }
+
+        errors
+    }
+}</code></pre>
+<p>Next, we need to implement the <code>analyze_parameters</code> function.</p>
+<p>We'll receive the current parameter block, and we'll add each parameter to the symbol table. There's no need to check for duplicate parameters, as the symbol table will handle that.</p>
+<pre><code class="language-rust ignore">impl FunctionDecl {
+    fn analyze_parameters(&amp;self, new_table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        for param in &amp;self.parameters {
+            if let Err(e) = new_table.add_param(param) {
+                errors.push(e);
+            }
+        }
+        errors
+    }
+}</code></pre>
+<p>Very simple!</p>
+<h2 id="implementing-analysis-for-unaryexpression"><a class="header" href="#implementing-analysis-for-unaryexpression">Implementing <code>Analysis</code> for <code>UnaryExpression</code></a></h2>
+<p>Let's do this before Binary Expressions, since they involve a little extra work.</p>
+<p>When analyzing a unary expression, we'd need to check a few things:</p>
+<ol>
+<li>The operator must be valid for the type (i.e. we can't call <code>!</code> on an integer)</li>
+<li>The expression must be valid</li>
+</ol>
+<p>Let's quickly write the implementation for not (<code>!</code>). We would only like the expression to be a boolean.</p>
+<pre><code class="language-rust ignore">impl Analysis for UnaryExpression {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        match &amp;self.kind {
+            UnaryExpressionKind::Negation(_) =&gt; self.analyze_negation(table),
+            UnaryExpressionKind::Not(_) =&gt; self.analyze_not(table),
+        }
+    }
+}
+
+impl UnaryExpression {
+    fn analyze_not(&amp;self, table: &amp;SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        let expr: &amp;Box&lt;Expression&gt; = match &amp;self.kind {
+            UnaryExpressionKind::Not(e) =&gt; e,
+            _ =&gt; unreachable!(),
+        };
+
+        // check if unsupported type
+        let expr_type = match expr.get_type(table) {
+            Ok(t) =&gt; t,
+            Err(e) =&gt; {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        match expr_type {
+            Type::Primitive(ref prim_ty) =&gt; match prim_ty.kind {
+                PrimitiveKind::Bool =&gt; (),
+                _ =&gt; errors.push(anyhow!(SemanticError::UnsupportedUnaryOperation {
+                    operator: "Not".to_string(),
+                    operand_type: expr_type.clone(),
+                    span: self.span.clone(),
+                })),
+            },
+        }
+
+        errors
+    }
+}</code></pre>
+<p>Let's do the same for negation (<code>-</code>). We'd only want the expression to be an integer or float strictly. This follows the same code structure as the <code>!</code> operator.</p>
+<pre><code class="language-rust ignore">impl UnaryExpression {
+    fn analyze_negation(&amp;self, table: &amp;SymbolTable) -&gt; Vec&lt;Error&gt; {
+        // ...
+
+        match expr_type {
+            Type::Primitive(ref prim_ty) =&gt; match prim_ty.kind {
+                PrimitiveKind::Int | PrimitiveKind::Float =&gt; (),
+                _ =&gt; errors.push(anyhow!(SemanticError::UnsupportedUnaryOperation {
+                    operator: "Negation".to_string(),
+                    operand_type: expr_type.clone(),
+                    span: self.span.clone(),
+                })),
+            },
+        }
+
+        errors
+    }
+}</code></pre>
+<p>Recall that we declared <code>get_type</code> and <code>idents_used</code> for the expression, which would propagate onto this struct. We'll pretty much redirect them back to the expression, which would call the same function on the inner expression.</p>
+<pre><code class="language-rust ignore">impl UnaryExpression {
+    pub fn get_type(&amp;self, table: &amp;SymbolTable) -&gt; Result&lt;Type&gt; {
+        let expr = match &amp;self.kind {
+            UnaryExpressionKind::Negation(e) =&gt; e,
+            UnaryExpressionKind::Not(e) =&gt; e,
+        };
+
+        expr.get_type(table)
+    }
+
+    pub fn idents_used(&amp;self) -&gt; Vec&lt;Ident&gt; {
+        match &amp;self.kind {
+            UnaryExpressionKind::Negation(e) =&gt; e.idents_used(),
+            UnaryExpressionKind::Not(e) =&gt; e.idents_used(),
+        }
+    }
+}</code></pre>
+<h2 id="implementing-analysis-for-binaryexpression"><a class="header" href="#implementing-analysis-for-binaryexpression">Implementing <code>Analysis</code> for <code>BinaryExpression</code></a></h2>
+<p>A binary expression involves two operands. We'd need to check whether both the left hand size <code>lhs</code> and right hand size <code>lhs</code> are the same type (we do not want implicit type coercion here). We'd also like to make sure they're valid types to be added together.</p>
+<p>Nothing, too extravagant, let's implement:</p>
+<pre><code class="language-rust ignore">impl Analysis for BinaryExpression {
+    fn analyze(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        // validate both sides are same type
+        let mut errors = Vec::new();
+
+        let lhs_type = match self.lhs.get_type(table) {
+            Ok(t) =&gt; t,
+            Err(e) =&gt; {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        let rhs_type = match self.rhs.get_type(table) {
+            Ok(t) =&gt; t,
+            Err(e) =&gt; {
+                errors.push(e);
+                return errors;
+            }
+        };
+
+        if lhs_type != rhs_type {
+            errors.push(anyhow!(SemanticError::TypesDoNotMatch {
+                expected_type: lhs_type.clone(),
+                expected_span: self.lhs.span(),
+                found_type: rhs_type.clone(),
+                found_span: self.rhs.span(),
+            }));
+        };
+
+        // check if either side is not a valid type
+        if !self.is_valid_type(&amp;lhs_type) {
+            errors.push(anyhow!(SemanticError::UnsupportedBinaryOperation {
+                operator: self.op.kind.to_string(),
+                operand_type: lhs_type,
+                span: self.span.clone(),
+            }));
+        }
+
+        if !self.is_valid_type(&amp;rhs_type) {
+            errors.push(anyhow!(SemanticError::UnsupportedBinaryOperation {
+                operator: self.op.kind.to_string(),
+                operand_type: rhs_type,
+                span: self.span.clone(),
+            }));
+        }
+
+        errors
+    }
+}
+
+impl BinaryExpression {
+    fn is_valid_type(&amp;self, ty: &amp;Type) -&gt; bool {
+        match ty {
+            Type::Primitive(ref prim_ty) =&gt; match prim_ty.kind {
+                PrimitiveKind::Int | PrimitiveKind::Float | PrimitiveKind::Bool =&gt; true,
+            },
+        }
+    }
+}</code></pre>
+<p>Similar to unary expressions, we'll need to implement <code>get_type</code> and <code>idents_used</code> for binary expressions. We'll redirect these functions to the inner expressions.</p>
+<pre><code class="language-rust ignore">impl BinaryExpression {
+    pub fn get_type(&amp;self, table: &amp;SymbolTable) -&gt; Result&lt;Type&gt; {
+        let lhs_type = self.lhs.get_type(table)?;
+        let rhs_type = self.rhs.get_type(table)?;
+
+        if lhs_type != rhs_type {
+            return Err(anyhow!(SemanticError::TypesDoNotMatch {
+                expected_type: lhs_type,
+                expected_span: self.lhs.span(),
+                found_type: rhs_type,
+                found_span: self.rhs.span(),
+            }));
+        }
+
+        // if comparison, return bool
+        match self.op.kind {
+            BinaryOperatorKind::Equal
+            | BinaryOperatorKind::NotEqual
+            | BinaryOperatorKind::LessThan
+            | BinaryOperatorKind::LessThanOrEqual
+            | BinaryOperatorKind::GreaterThan
+            | BinaryOperatorKind::GreaterThanOrEqual =&gt; Ok(Type::Primitive(PrimitiveType {
+                kind: PrimitiveKind::Bool,
+                span: self.span.clone(),
+            })),
+            _ =&gt; Ok(lhs_type),
+        }
+    }
+
+    pub fn idents_used(&amp;self) -&gt; Vec&lt;Ident&gt; {
+        let mut idents = self.lhs.idents_used();
+        idents.extend(self.rhs.idents_used());
+        idents
+    }
+}</code></pre>
+<h2 id="implementing-analysis-for-primaryexpression"><a class="header" href="#implementing-analysis-for-primaryexpression">Implementing <code>Analysis</code> for <code>PrimaryExpression</code></a></h2>
+<p>Since this is an enum, we simply call <code>analyze</code> on each variant. However, the function call variant is a little more complex. We'll define and create <code>analyze_fn_call</code> for this.</p>
+<pre><code class="language-rust ignore">impl Analysis for PrimaryExpression {
+    fn analyze(&amp;self, _table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        match self {
+            PrimaryExpression::Literal(_) =&gt; vec![],
+            PrimaryExpression::Ident(_) =&gt; vec![],
+            PrimaryExpression::Parenthesized(p) =&gt; p.analyze(_table),
+            PrimaryExpression::FunctionCall(_, _) =&gt; self.analyze_fn_call(_table),
+        }
+    }
+}</code></pre>
+<p>When analyzing a function call, we need to ensure that:</p>
+<ol>
+<li>The function is declared</li>
+<li>The number of arguments passed match</li>
+<li>The types of the arguments match the function parameters</li>
+</ol>
+<p>This is pretty much the process of the entire function, so we can just implement. We need to unwrap the primary expression, look for the function in the symbol table, and check the arguments.</p>
+<pre><code class="language-rust ignore">impl PrimaryExpression {
+    fn analyze_fn_call(&amp;self, table: &amp;mut SymbolTable) -&gt; Vec&lt;Error&gt; {
+        let mut errors = Vec::new();
+
+        let (ident, args) = match self {
+            PrimaryExpression::FunctionCall(i, a) =&gt; (i, a),
+            _ =&gt; unreachable!("analyze_fn_call called on non-FunctionCall variant"),
+        };
+
+        // can we find the function in the symbol table?
+        if let Some(func) = table.get_fn(&amp;ident) {
+            // check if the number of arguments match
+            if func.params.len() != args.len() {
+                // get the span of arguments supplied
+                let call_span = Span::combine(
+                    &amp;args.first().map(|a| a.span()).unwrap_or(ident.span.clone()),
+                    &amp;args.last().map(|a| a.span()).unwrap_or(ident.span.clone()),
+                );
+
+                errors.push(anyhow!(SemanticError::ArgumentCountMismatch {
+                    expected: func.params.len(),
+                    found: args.len(),
+                    call_span,
+                    decl_span: func.sig_span.clone(),
+                }));
+            } else {
+                // check if the types of the arguments match
+                for (param_ty, arg) in func.params.iter().zip(args) {
+                    let arg_ty: Type = match arg.get_type(table) {
+                        Ok(ty) =&gt; ty,
+                        Err(e) =&gt; {
+                            errors.push(e);
+                            continue;
+                        }
+                    };
+
+                    if *param_ty != arg_ty {
+                        errors.push(anyhow!(SemanticError::TypesDoNotMatch {
+                            expected_type: param_ty.clone(),
+                            expected_span: param_ty.span(),
+                            found_type: arg_ty,
+                            found_span: arg.span(),
+                        }));
+                    }
+                }
+            }
+        } else {
+            errors.push(anyhow!(SemanticError::FunctionNotDeclared(
+                ident.clone(),
+                ident.span.clone()
+            )));
+        }
+
+        errors
+    }
+}</code></pre>
+<p>Since <code>Expression</code> propagated its <code>get_type</code> and <code>idents_used</code> functions through to us, we need to implement this here. Since this is a primary expression, we'll actually handle it this time.</p>
+<p>It depends on what kind of primary expression it is, however:</p>
+<ul>
+<li><strong>Literal</strong>: Call the <code>get_type</code> function on the literal</li>
+<li><strong>Ident</strong>: Get the type of the identifier from the symbol table</li>
+<li><strong>Parenthesized</strong>: Call the <code>get_type</code> function on the expression</li>
+<li><strong>FunctionCall</strong>: Return the function return type, if it exists</li>
+</ul>
+<pre><code class="language-rust ignore">impl PrimaryExpression {
+    pub fn get_type(&amp;self, table: &amp;SymbolTable) -&gt; Result&lt;Type&gt; {
+        match self {
+            PrimaryExpression::Literal(l) =&gt; Ok(l.get_type()),
+            PrimaryExpression::Ident(i) =&gt; {
+                if let Some(var) = table.get_var(&amp;i) {
+                    Ok(var.ty.clone())
+                } else {
+                    Err(anyhow!(SemanticError::VariableNotDeclared(
+                        i.clone(),
+                        i.span.clone()
+                    )))
+                }
+            }
+            PrimaryExpression::Parenthesized(p) =&gt; p.get_type(table),
+            PrimaryExpression::FunctionCall(i, _) =&gt; {
+                if let Some(func) = table.get_fn(&amp;i) {
+                    Ok(func.ret_ty.clone())
+                } else {
+                    Err(anyhow!(SemanticError::FunctionNotDeclared(
+                        i.clone(),
+                        i.span.clone()
+                    )))
+                }
+            }
+        }
+    }
+}</code></pre>
+<p>For idents used it, too, depends on the variant:</p>
+<ul>
+<li><strong>Literal</strong>: No identifiers used</li>
+<li><strong>Ident</strong>: Return the identifier</li>
+<li><strong>Parenthesized</strong>: Call the <code>idents_used</code> function on the expression</li>
+<li><strong>FunctionCall</strong>: Return the identifiers used in the arguments</li>
+</ul>
+<pre><code class="language-rust ignore">impl PrimaryExpression {
+    pub fn idents_used(&amp;self) -&gt; Vec&lt;Ident&gt; {
+        match self {
+            PrimaryExpression::Literal(_) =&gt; vec![],
+            PrimaryExpression::Ident(i) =&gt; vec![i.clone()],
+            PrimaryExpression::Parenthesized(p) =&gt; p.idents_used(),
+            PrimaryExpression::FunctionCall(_, args) =&gt; {
+                args.iter().flat_map(|a| a.idents_used()).collect()
+            }
+        }
+    }
+}</code></pre>
+<h2 id="testing"><a class="header" href="#testing">Testing</a></h2>
+<p>It's important to test your code. Let's look at some code examples and run tests on them. We'll just go through one test.</p>
+<pre><code>fn main() -&gt; int {
+    return 5;
+}
+
+fn foo() -&gt; bool {
+    return 5;
+}
+</code></pre>
+<p>This gives us the error:</p>
+<pre><code>Error: Incompatible return type
+   ╭─[test:5:9]
+   │
+ 4 │ fn foo() -&gt; bool {
+   │             ──┬─  
+   │               ╰─── expected bool return type
+ 5 │     return 5;
+   │            ┬  
+   │            ╰── found int instead of bool
+───╯
+</code></pre>
+<p>This recognised that not only is <code>foo</code> returning an integer rather than <code>bool</code>, it knows that the <code>main</code> function exists and returns an integer. Nice.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="implementing_a_symbol_table.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="intermediate_representation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="implementing_a_symbol_table.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="intermediate_representation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

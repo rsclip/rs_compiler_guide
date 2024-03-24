@@ -1,0 +1,387 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>This guide serves as a brief process of developing a compiler for our own programming language from scratch into executable programs. We'll cover each stage of compilation, from tokenization to code generation, all with explanations.</p>
+<p>I am quite a beginner in both Rust and Compiler Development, so the code may be messy and very badly/inefficiently implemented. Either way, it can be a great starting point!</p>
+<p>I'll link resources frequently throughout the guide, and I'll also provide a list of resources at the end. They will be at the bottom of each (sub)section.</p>
+<p>Not all code covered will be included in the guide, but the final code will be available in the final GitHub repository at the bottom.</p>
+<h2 id="goals-of-the-guide"><a class="header" href="#goals-of-the-guide">Goals of the Guide</a></h2>
+<p>Learning how to develop a compiler is ridiculously confusing with a high barrier-to-entry and no solid guide on how to make one. Thus, this guide will:</p>
+<ul>
+<li>Provide a somewhat thorough understanding of the compilation process, including its stages and components</li>
+<li>Explains the role and significance of each stage of said process</li>
+<li>Offer insights into common techniques, optimizations, etc. used in modern compilers</li>
+<li>Provide a good understanding in how languages actually work</li>
+<li>Allow you to make your own compiler! Kind of.</li>
+</ul>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<p>While this guide aims to be accessible to developers at various levels, you should have an intermediate understanding of programming languages and Computer Science fundamentals.</p>
+<p>The guide uses Rust exclusively, but it avoids difficult or non-conventional concepts. It can be followed in another similar language to an extent.</p>
+<p><strong>Recommended:</strong></p>
+<ul>
+<li>Good understanding of programming concepts (variables, data-types, control structures, functions, recursive &amp; iterative methods, etc.)</li>
+<li>Familiarity with Rust (if you know C++, this should be relatively easy to pick up)</li>
+<li>Understanding of fundamental data structures (stacks, trees, etc.)</li>
+<li>Knowledge of algorithm design &amp; analysis principles</li>
+</ul>
+<p><strong>Beneficial</strong>:
+Albeit not required, it would greatly help if you have knowledge of some more topics.</p>
+<ul>
+<li>Understanding of memory management concepts</li>
+<li>Knowledge of Abstract Syntax Trees (ASTs)</li>
+<li>Understanding of grammars (EBNF, BNF, etc.)</li>
+<li>Knowledge of basic compiler theory concepts (lexical analysis, parsing, optimization, etc.)</li>
+<li>Familiarity with any Assembly languages or low-level programming concepts</li>
+<li>Understanding of basic Mathematics (set theory, logic, etc.)</li>
+<li>Understanding of Mathematic notations</li>
+</ul>
+<p>Although this may be a daunting list, it's not necessary to know everything. The guide will cover most of these topics, and it's not at all difficult to learn them as you go along!</p>
+<h2 id="overview-of-compilers"><a class="header" href="#overview-of-compilers">Overview of Compilers</a></h2>
+<h3 id="what-is-a-compiler"><a class="header" href="#what-is-a-compiler">What is a Compiler?</a></h3>
+<p>A compiler is a program that translates source code (represented as text) written in a higher-level programming language into machine code which a computer can execute directly. It may also be translated into bytecode, in which a virtual machine (like Java's Virtual Machine or Python's interpreter) can interpret and run, although this requires the VM to be installed. It plays a crucial role by facilitating in the conversion of human-readable code into a format understandable by the computer's hardware.</p>
+<h3 id="key-concepts"><a class="header" href="#key-concepts">Key concepts</a></h3>
+<p>There are some critical concepts of Compiler Theory you need to understand before going through the stages:</p>
+<p><strong>Abstract Syntax Trees</strong>: ASTs are trees which determine the structure of the program in a machine-readable way. For example, <code>a = 1 + 2</code> becomes:</p>
+<pre><code>	VarDeclaration
+Ident(a)       Add
+			1		2
+</code></pre>
+<p><strong>Tokens</strong>: Represent the small "building blocks" of text, as opposed to a list of characters. For example, <code>fn main() { return 0; }</code> would be <code>["fn", "main", "(", ")", "{", "return", "0", ";", "}"</code>. There are no whitespaces.</p>
+<p><strong>Instruction Set Architecture</strong>: ISAs are a set of instructions a processor can run on. These vary from architecture to architecture.</p>
+<p><strong>Intermediate Representation</strong>: Different devices have different ISAs, and so the last code we generate will be an intermediate representation between ASTs and actual Assembly code. This way, we can convert it to multiple ISAs much more easily.</p>
+<h3 id="components-of-a-compiler"><a class="header" href="#components-of-a-compiler">Components of a Compiler</a></h3>
+<p>There's various components of a Compiler which the source code has to go through:</p>
+<p><strong>Lexer (Tokenizer)</strong>:
+Breaks down the source code into smaller units called <strong>tokens</strong>. These represent the smallest meaningful elements of the programming language such as keywords, identifiers, and literals. We use this to ignore redundant characters like whitespaces, making it easier for us to parse.</p>
+<p>This would also allow us to identify when there are unexpected characters or unterminated strings, for example.</p>
+<p><strong>Parser</strong>:
+The parser analyzes the structure of the source code by parsing the stream of tokens generated by the lexer. It verifies whether the code conforms to the grammar rules of the language, generating an Abstract Syntax Tree (AST).</p>
+<p><strong>Semantic Analyzer</strong>:
+Performs analysis to check for type compatibility, variable declarations, scoping rules, and more to ensure the code behaves as intended. This is especially important if the user does not return the correct type, which -- if gone unchecked -- can be especially catastrophic and unsafe; imagine a function intended to return a pointer to dynamically allocated memory (like a Vector), but due to a type-checking error, it instead returns a pointer to a different object. The caller may not properly deallocate memory (leading to memory leaks), and subsequent operations on the data could lead to memory corruption.</p>
+<p><strong>IR generation</strong>:
+From the resulting AST, the compiler generates an Intermediate Representation (IR) code prior to translating to Assembly. This is especially important since different computers, devices, and operating systems run on different architectures and ISAs (Instruction Set Architecture). This would be the lowest level of code yet produced, and we can easily convert this to assembly depending on the ISA.</p>
+<p><strong>Optimization</strong>:
+Applies various transformations to the IR -- or directly to the AST -- to improve the efficiency and performance of the generated code. They may include constant folding (converting <code>3 + 2</code> into just <code>5</code>), loop unrolling (getting rid of the condition checks), dead code elimination (removing parts that are never used), and register allocation (assigning variables/values to processor registers instead of memory locations, as they are significantly faster).</p>
+<p><strong>Code generation</strong>:
+Finally, the optimized IR is translated into machine code suitable for execution on the target ISA. This maps the constructs in IR to low-level instructions, whilst ensuring the target architecture's resources are being used efficiently.</p>
+<h1 id="introductory-resources"><a class="header" href="#introductory-resources">Introductory Resources</a></h1>
+<p>Some resources you could read into for this page in particular.</p>
+<ul>
+<li><a href="https://craftinginterpreters.com/">Crafting Interpreters</a>: A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.</li>
+<li><a href="https://doc.rust-lang.org/book/">Rust Programming Language</a>: The official Rust book is a great resource for learning Rust.</li>
+<li><a href="https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096">Programming Language Pragmatics</a>: A book by Michael Scott which covers the theory of programming languages, including compilers.</li>
+<li><a href="https://www.cs.cornell.edu/courses/cs412/2008sp/lectures/lec20.pdf">Intro to Compilers</a>, a lecture by Andrew Myers at Cornell University.</li>
+</ul>
+<h1 id="all-resources"><a class="header" href="#all-resources">All resources</a></h1>
+<p>All resources used in this guide will be listed here!</p>
+<ul>
+<li>
+<p><a href="./introduction.html">Introduction</a></p>
+<ul>
+<li><a href="https://craftinginterpreters.com/">Crafting Interpreters</a>: A book by Bob Nystrom which covers both interpreters and compilers. It's a great resource for learning how to make a language.</li>
+<li><a href="https://doc.rust-lang.org/book/">Rust Programming Language</a>: The official Rust book is a great resource for learning Rust.</li>
+<li><a href="https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott/dp/0124104096">Programming Language Pragmatics</a>: A book by Michael Scott which covers the theory of programming languages, including compilers.</li>
+<li><a href="https://www.cs.cornell.edu/courses/cs412/2008sp/lectures/lec20.pdf">Intro to Compilers</a>, a lecture by Andrew Myers at Cornell University.</li>
+</ul>
+</li>
+<li>
+<p><a href="./getting_started.html">Getting Started</a></p>
+<ul>
+<li><a href="https://doc.rust-lang.org/book/ch01-01-installation.html">Rust's book</a> (the installation section): The official Rust book is a great resource for installing and learning Rust.</li>
+<li><a href="https://doc.rust-lang.org/rust-by-example/">Rust by Example</a>: A great resource for learning Rust by example.</li>
+</ul>
+</li>
+<li>
+<p><a href="./error_handling.html">Error Handling</a></p>
+<ul>
+<li><a href="https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/">codespan-reporting</a></li>
+<li><a href="https://docs.rs/thiserror/1.0.24/thiserror/">thiserror</a></li>
+<li><a href="https://crates.io/crates/codespan-reporting">codespan-reporting example</a></li>
+<li><a href="https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/files/struct.SimpleFiles.html">SimpleFiles</a></li>
+<li><a href="https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/diagnostic/struct.Diagnostic.html">Diagnostic</a></li>
+<li><a href="https://docs.rs/codespan-reporting/0.11.1/codespan_reporting/diagnostic/struct.Label.html">Label</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Error_recovery">Error Recovery</a></li>
+<li><a href="https://go.dev/blog/defer-panic-and-recover">Panic vs Recover in Go</a></li>
+</ul>
+</li>
+<li>
+<p><a href="./lexical_analysis.html">Lexical Analysis</a></p>
+<ul>
+<li><a href="https://github.com/leonardomso/awesome-fsm">Awesome FSM</a>: A curated list of awesome finite state machine libraries, software and resources.</li>
+<li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html">Iterator trait</a>: The official documentation for the <code>Iterator</code> trait.</li>
+<li><a href="https://doc.rust-lang.org/rust-by-example/scope/lifetime.html">Lifetimes in Rust</a></li>
+<li><a href="./finite_automata.html">Finite Automata</a> in this guide!</li>
+<li><a href="https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356">Rust's Strings</a>: A comprehensive guide to Rust's strings.</li>
+</ul>
+</li>
+<li>
+<p><a href="./parsing_and_syntax_analysis.html">Parsing and Syntax Analysis</a></p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax Trees - Wikipedia</a></li>
+<li><a href="https://eli.thegreenplace.net/2009/02/16/abstract-vs-concrete-syntax-trees">ASTs vs CSTs</a></li>
+<li><a href="https://docs.rs/syn/1.0.72/syn/">Rust Syn crate</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Tree_(data_structure)">Tree Data Structures</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Tree_traversal">Tree Traversal</a></li>
+<li><a href="https://www.cs.cornell.edu/courses/cs2110/2017sp/online/dfs/dfs01.html">DFS, BFS</a></li>
+<li><a href="https://www.ketteringscienceacademy.org/attachments/download.asp?file=1057&amp;type=pdf">BNF</a>: The dates example is from this resource.</li>
+<li><a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">EBNF</a>: Wikipedia's page on EBNF.</li>
+<li><a href="https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf">EBNF</a>: The official ISO standard for EBNF.</li>
+<li><a href="https://www.cs.uic.edu/~liub/teach/cs494/ebnf.pdf">EBNF</a>: A more concise and readable resource on EBNF.</li>
+<li><a href="https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars">Intro to Programming Languages/Grammars</a>: A Wikibooks page on grammars.</li>
+<li><a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">Recursive Descent Parsing</a> on Wikipedia</li>
+<li><a href="https://maeyler.github.io/Automata-2018/cfg/Bilal_RecursiveDescentParser.html">RDP Visualizer</a> - A visualizer for recursive descent parsers</li>
+<li><a href="https://en.wikipedia.org/wiki/LL_parser">LL(k) Parsing</a> on Wikipedia</li>
+<li><a href="https://www.cs.uaf.edu/~cs331/notes/FirstFollow.pdf">LL(k) Parsing</a> on University of Alaska Fairbanks</li>
+<li><a href="https://github.com/GabrielMajeri/LL-K-Parser">LL(k) Parser</a>: A Python implementation of an LL(k) parser</li>
+<li><a href="https://en.wikipedia.org/wiki/LR_parser">LR Parsing</a> on Wikipedia</li>
+<li><a href="https://www.geeksforgeeks.org/lr-parser/">LR Parsing GfG</a>: GeeksforGeeks article on LR Parsing</li>
+<li><a href="https://en.wikipedia.org/wiki/Operator-precedence_parser">Operator Precedence</a></li>
+<li><a href="https://doc.rust-lang.org/std/boxed/struct.Box.html">Box<T></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.Display.html"><code>Display</code> trait</a></li>
+<li><a href="https://doc.rust-lang.org/std/cell/struct.RefCell.html">RefCell documentation</a></li>
+<li><a href="https://doc.rust-lang.org/book/ch15-05-interior-mutability.html">RefCell in book</a></li>
+</ul>
+</li>
+</ul>
+<p><strong>Todo</strong>:</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<a href="./semantic_analysis.html">Semantic Analysis</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="getting_started.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="getting_started.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

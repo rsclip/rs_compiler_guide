@@ -1,0 +1,592 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lexer - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html" class="active"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="implementing-a-lexer"><a class="header" href="#implementing-a-lexer">Implementing a Lexer</a></h1>
+<p>Now that we have our tokens declared, we can start implementing our lexer. The lexer will take in a string of source code and output a list of tokens. We'll use a simple state machine to do this, as mentioned in <a href="./finite_automata.html">Finite Automata</a>.</p>
+<p>Keep in mind we will not be explicitly storing States and Transitions, but instead it'll be implemented implicitly in the code.</p>
+<h2 id="what-are-iterators"><a class="header" href="#what-are-iterators">What are Iterators?</a></h2>
+<p>Rust includes the concept of <strong>Iterators</strong>, which essentially allow you to iterate over some sort of collection (e.g. the source code characters) and perform some action on each item. This is a very powerful concept, and we'll use it to our advantage.</p>
+<p>We will use the <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html"><code>Iterator</code> trait</a> to apply the iterator concept to our lexer. As stated, our lexer will be a Deterministic Finite Automaton (DFA). We will use the <code>Iterator</code> trait to iterate over the characters of the source code, and the state machine will consume these characters and transition to the next state.</p>
+<h2 id="the-lexer"><a class="header" href="#the-lexer">The Lexer</a></h2>
+<p>Let's start by creating a new file called <code>lexer.rs</code> in the <code>src</code> directory. This file will contain our lexer implementation. We'll start by defining the <code>Lexer</code> struct and implementing the <code>Iterator</code> trait for it.</p>
+<pre><code class="language-rust ignore">use anyhow::{anyhow, Error, Result};
+
+use crate::errors::LangError;
+use crate::token::{Span, Token, TokenKind};
+
+/// A lexer iterator.
+pub struct Lexer&lt;'a&gt; {
+    src: &amp;'a str,
+    pos: usize,
+}</code></pre>
+<p>The lexer will contain a reference to the source code <code>src</code>, and a <code>pos</code> field to keep track of the current position in the source code. We would rather use <code>&amp;'a str</code> instead of <code>String</code> to avoid unnecessary allocations; we won't be modifying the source code, so we don't need to own it.</p>
+<blockquote>
+<p><strong>Note</strong></p>
+<p>Some helper functions (e.g. <code>advance</code>, <code>peek</code>) are not shown here, but they will be used in the implementation. They are simple and self-explanatory, and you can find them in the full source code.</p>
+</blockquote>
+<h2 id="dfa-model"><a class="header" href="#dfa-model">DFA Model</a></h2>
+<p>Before we implement the <code>Iterator</code> trait, we need to understand exactly how iteration will work here.</p>
+<p>We will use a simple DFA model to implement our lexer. The DFA will have a set of states, and each state will have a set of transitions to other states. The transitions will be based on the current character being processed.</p>
+<p>Consider:</p>
+<ul>
+<li>States: \( Q = \{q_{start}, q_{id}, q_{kw}, q_{num}, q_{op}, q_{whitespace}, q_{eof}\} \)</li>
+<li>Alphabet: \( \sum = \{\text{Letters}, \text{Digits}, \text{Operators}, \text{Symbols}\} \)
+<ul>
+<li>\(\text{Operators}\) represent both single-char and multi-char operators.</li>
+</ul>
+</li>
+</ul>
+<p>Let's derive a transition function! We should define these for each state. We will exclude numbers and identifiers since they were explored in <a href="./finite_automata.html">Finite Automata</a>.</p>
+<h3 id="tokenizing-operators"><a class="header" href="#tokenizing-operators">Tokenizing operators</a></h3>
+<p>The major case we will need to handle is tokenizing operators which may or may not be multi-character.</p>
+<p>Take <code>+</code> and <code>+=</code> as an example: the lexer should recognize <code>+</code> as an operator token, and <code>+=</code> as an operator token as well. The lexer should not tokenize <code>+</code> as a single <code>+</code> token and <code>=</code> as a separate token.</p>
+<p>We can define the transition functions for the \(q_{op}\) state as follows:</p>
+<p>$$\begin{align*} \delta(q_{op}, a) &amp;= \begin{cases} q_{op}^{(1)} &amp; \exists s_i \in \text{ 2-char Operators}: \text{a startswith } s_i \\ q_{op} &amp; \exists s_i\in \text{ 1-char Operators}: \text{a startswith } s_i \\ \text{null} &amp; \text{otherwise} \end{cases} \\ \delta(q_{op}^{(1)}, b) &amp;= \begin{cases} q_{op} &amp; ab \in \text{ 2-char Operators} \\ \text{null} &amp; \text{otherwise} \end{cases} \\
+\end{align*}$$</p>
+<p>Essentially, this just means depending on the start of the operator, we will transition to a new state \(q_{op}^{(1)}\) (the state for multi-char operators) and then transition back to the \(q_{op}\) state if the next character is not part of a multi-char operator.</p>
+<h3 id="tokenizing-comments-and-whitespace"><a class="header" href="#tokenizing-comments-and-whitespace">Tokenizing comments and whitespace</a></h3>
+<p>We will also need to handle comments and whitespace. Typically, we would ignore them unless they hold some significance (e.g. a comment token).</p>
+<p>When we transition into the \(q_{comment}\) state, we will simply consume until a newline is encountered. We will then transition back to the \(q_{start}\) state:</p>
+<p>$$\delta(q_{comment}, a) = \begin{cases} q_{comment} &amp; a \neq \text{newline} \\ q_{start} &amp; a = \text{newline} \end{cases}$$</p>
+<p>The \(q_{whitespace}\) state will be similar, but we will transition back to the \(q_{start}\) state on encountering a non-whitespace character:</p>
+<p>$$\delta(q_{whitespace}, a) = \begin{cases} q_{whitespace} &amp; a = \text{whitespace} \\ q_{start} &amp; a \neq \text{whitespace} \end{cases}$$</p>
+<h3 id="tokening-symbols"><a class="header" href="#tokening-symbols">Tokening symbols</a></h3>
+<p>This is the easiest case to handle. We will simply transition to a final state when we encounter a symbol:</p>
+<p>$$\delta(q_{symbol}, a) = \begin{cases} q_{symbol} &amp; \text{if a is a symbol} \end{cases}$$</p>
+<h3 id="helping-dfa-realise-its-over"><a class="header" href="#helping-dfa-realise-its-over">Helping DFA realise its over</a></h3>
+<p>We will also need to handle the end of the file. We will transition to the \(q_{eof}\) state when we reach the end of the file:</p>
+<p>$$\delta(q_{eof}, a) = \begin{cases} q_{eof} &amp; \text{EOF} \end{cases}$$</p>
+<p>It should simply never transition out of the state, as there are no more characters to process.</p>
+<h2 id="implementing-the-iterator-trait"><a class="header" href="#implementing-the-iterator-trait">Implementing the Iterator trait</a></h2>
+<p>To implement the lexer there is a single method we need to implement: <code>next</code>. This method will return the next token in the source code.</p>
+<pre><code class="language-rust ignore">impl&lt;'a&gt; Iterator for Lexer&lt;'a&gt; {
+    type Item = Token;
+
+    fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+        // ...
+    }
+}</code></pre>
+<p>At each iteration, we will consume some characters depending on the state, and upon reaching a final state, we will return the token. We will also need to handle the case where the lexer reaches the end of the source code.</p>
+<p>First, we should skip any whitespace and comments since they cannot be tokenized into anything meaningful. It'll also be cleaner to move this to a separate <code>impl</code> block.</p>
+<pre><code class="language-rust ignore">impl&lt;'a&gt; Lexer&lt;'a&gt; {
+    fn skip_whitespace(&amp;mut self) {
+        while let Some(ch) = self.peek() {
+            if ch.is_whitespace() {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn skip_comments(&amp;mut self) {
+        if self.peek() == Some('/') &amp;&amp; self.src[self.pos + 1..].chars().next() == Some('/') { // ridiculously slow :(
+            while let Some(ch) = self.peek() {
+                if ch == '\n' {
+                    break;
+                } else {
+                    self.advance();
+                }
+            }
+        }
+    }
+}
+
+impl&lt;'a&gt; Iterator for Lexer&lt;'a&gt; {
+    type Item = Token;
+
+    fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+        self.skip_whitespace();
+        self.skip_comments();
+
+        // ...
+    }
+}</code></pre>
+<p>Now after transitioning from \(q_{start}\) to potentially \(q_{whitespace}\) or \(q_{comment}\) and back to \(q_{start}\), we can start lexing the next token. Rust's <code>match</code> keyword is extremely powerful in this instance!</p>
+<pre><code class="language-rust ignore">        if let Some(ch) = self.peek() {
+            // we'll define our transition functions here
+            let token = match ch {
+                // Transition to q_{op} state
+                '+' | '-' | '*' | '/' | '%' | '^' | '=' | '&lt;' | '&gt;' | '!' | '&amp;' | '|' =&gt; {
+                    self.lex_op()
+                }
+                // Transition to q_{num} state
+                '0'..='9' =&gt; self.lex_number(),
+                // Transition to q_{id} state. This also includes keywords.
+                'a'..='z' | 'A'..='Z' | '_' =&gt; self.lex_word(),
+                // Transition into symbols state
+                '{' =&gt; Ok(self.lex_single_char(TokenKind::LBrace)),
+                '}' =&gt; Ok(self.lex_single_char(TokenKind::RBrace)),
+                '(' =&gt; Ok(self.lex_single_char(TokenKind::LParen)),
+                ')' =&gt; Ok(self.lex_single_char(TokenKind::RParen)),
+                ';' =&gt; Ok(self.lex_single_char(TokenKind::Semicolon)),
+                ',' =&gt; Ok(self.lex_single_char(TokenKind::Comma)),
+                '.' =&gt; Ok(self.lex_single_char(TokenKind::Dot)),
+                ':' =&gt; Ok(self.lex_single_char(TokenKind::Colon)),
+                _ =&gt; {
+                    // return an error including the span
+                    Err(anyhow!(LangError::UnexpectedCharacter(
+                        ch.to_string(),
+                        Span {
+                            start: self.pos,
+                            end: self.pos + ch.len_utf8()
+                        }
+                    )))
+                }
+            };
+
+            Some(token)
+        } else {
+            None
+        }</code></pre>
+<p>One important note is that whilst it returns <code>Option&lt;Self::Item&gt;</code> -- or <code>Option&lt;Result&lt;Token&gt;&gt;</code> more specifically -- upon encountering an error we will attempt to recover instead of declaring there is no token there. This is a common practice in lexing and parsing so we can catch multiple errors instead of stopping early.</p>
+<p>Next, there's a few transition functions we need to define.</p>
+<h3 id="transitioning-to-the-q_op-state-parsing-operators"><a class="header" href="#transitioning-to-the-q_op-state-parsing-operators">Transitioning to the \(q_{op}\) state (parsing operators)</a></h3>
+<p>Recall the transition functions for the \(q_{op}\) state:</p>
+<p>$$\begin{align*} \delta(q_{op}, a) &amp;= \begin{cases} q_{op}^{(1)} &amp; \exists s_i \in \text{ 2-char Operators}: \text{a startswith } s_i \\ q_{op} &amp; \exists s_i\in \text{ 1-char Operators}: \text{a startswith } s_i \\ \text{null} &amp; \text{otherwise} \end{cases} \\ \delta(q_{op}^{(1)}, b) &amp;= \begin{cases} q_{op} &amp; ab \in \text{ 2-char Operators} \\ \text{null} &amp; \text{otherwise} \end{cases} \\
+\end{align*}$$</p>
+<p>Whilst it seems complex, we can implement it in a single function. The steps are simply:
+0. Assume that the current character is an operator</p>
+<ol>
+<li>Keep track of the start index of the operator</li>
+<li>Check if the next character forms a multi-char operator
+<ul>
+<li><strong>If so</strong>, consume the next character and return the multi-char operator token</li>
+<li><strong>If not</strong>, return the single-char operator token</li>
+</ul>
+</li>
+</ol>
+<p>Let's implement this in the main <code>impl</code> block:</p>
+<pre><code class="language-rust ignore">    fn lex_op(&amp;mut self) -&gt; Result&lt;Token&gt; {
+        // 1. Keep track of the start index of the operator
+        let start = self.pos;
+
+        // 2. Check if the next character forms a multi-char operator
+        self.advance();
+        let mut end = self.pos;
+
+        if let Some(ch) = self.peek() {
+            match ch {
+                // if so, consume the next character and update end
+                '+' | '-' | '*' | '/' | '%' | '^' | '=' | '&lt;' | '&gt;' | '!' | '&amp;' | '|' =&gt; {
+                    self.advance();
+                    end = self.pos;
+                }
+                // if not, the end is the same as the start
+                _ =&gt; {}
+            }
+        } else {
+            // Make sure we dont go out of bounds
+            return Err(anyhow!(LangError::UnexpectedEOF(Span { start, end })));
+        }
+
+        Ok(Token {
+            kind: TokenKind::operator_from(&amp;self.src[start..end]),
+            span: Span { start, end },
+        })
+    }</code></pre>
+<p>Keep in mind we are using the <code>operator_from</code> method on <code>TokenKind</code> to convert the operator string to a <code>TokenKind</code>. We implemented this in the <a href="./tokens.html">Tokens</a> section.</p>
+<h3 id="transitioning-to-the-q_num-state-parsing-numbers"><a class="header" href="#transitioning-to-the-q_num-state-parsing-numbers">Transitioning to the \(q_{num}\) state (parsing numbers)</a></h3>
+<p>Recall the transition functions for the \(q_{num}\) state in the <a href="./finite_automata.html">Finite Automata</a> section:
+$$\delta(q_{num}, a) = \begin{cases}
+q_{int} &amp;q = q_{start} \ \land \ a \in \text{Digits} \\
+q_{decimal} &amp;q = q_{intPart} \ \land \ a \in \text{Decimal Point} \\
+q_{frac} &amp;q = q_{decimalPoint} \ \land \ a \in \text{DIGITS} \\
+\text{null} &amp;\text{otherwise}
+\end{cases}$$</p>
+<p>We'll use this for parsing both integers and floats (in this case, they will be parsed as integers unless a <code>.</code> is present).</p>
+<p>First, let's get the entire span of the literal, including whether or not it contains a decimal point:</p>
+<pre><code class="language-rust ignore">    fn lex_number(&amp;mut self) -&gt; Result&lt;Token&gt; {
+        let start = self.pos;
+        let mut has_decimal = false;
+
+        while let Some(ch) = self.peek() {
+            // if it's a number, we keep going
+            if ch.is_digit(10) {
+                self.advance();
+            } else if ch == '.' {
+                // we keep going still, but we need to keep track of whether we've seen a decimal point
+                if has_decimal {
+                    self.advance();
+                    let val = &amp;self.src[self.pos - 1..self.pos];
+
+                    // advance until whitespace
+                    while let Some(ch) = self.peek() {
+                        if ch.is_whitespace() {
+                            break;
+                        } else {
+                            self.advance();
+                        }
+                    }
+
+                    return Err(anyhow!(LangError::UnexpectedCharacter(
+                        val.to_string(),
+                        Span {
+                            start,
+                            end: self.pos
+                        }
+                    )));
+                } else {
+                    has_decimal = true;
+                    self.advance();
+                }
+            } else {
+                break;
+            }
+        }
+        let end = self.pos;
+
+        // ...
+    }</code></pre>
+<p>Here, we continually advance across the number until we reach a non-digit character. If we encounter a decimal point <code>.</code>, we handle it depending on whether we've seen one before:</p>
+<ul>
+<li>If we haven't, we set <code>has_decimal</code> to <code>true</code> and continue</li>
+<li>If we have, we advance until the end of the entire "number" and return an error</li>
+</ul>
+<p>Next, we should check whether the number is a float or not (determined by <code>has_decimal</code>), and convert it into the respective <code>Token</code>:</p>
+<pre><code class="language-rust ignore">        if has_decimal {
+            // attempt to parse as a float, otherwise return an error
+            match value.parse() {
+                Ok(f) =&gt; Ok(Token {
+                    kind: TokenKind::FloatLiteral(f),
+                    span: Span { start, end },
+                }),
+                Err(_) =&gt; Err(anyhow!(LangError::InvalidLiteral(
+                    value.to_string(),
+                    Span { start, end }
+                ))),
+            }
+        } else {
+            // attempt to parse as an integer, otherwise return an error
+            match value.parse() {
+                Ok(i) =&gt; Ok(Token {
+                    kind: TokenKind::IntLiteral(i),
+                    span: Span { start, end },
+                }),
+                Err(_) =&gt; Err(anyhow!(LangError::InvalidLiteral(
+                    value.to_string(),
+                    Span { start, end }
+                ))),
+            }
+        }</code></pre>
+<h3 id="transitioning-to-the-q_kw-bigcup-q_id-state-parsing-identifiers"><a class="header" href="#transitioning-to-the-q_kw-bigcup-q_id-state-parsing-identifiers">Transitioning to the \(q_{kw} \bigcup q_{id}\) state (parsing identifiers)</a></h3>
+<p>We're going to group these two states together, since we may not be certain if the identifier is a keyword or not. We'll check this after we've determined the entire span of the word.</p>
+<p>Again, let's recall the transition functions for the \(q_{id}\) state in the <a href="./finite_automata.html">Finite Automata</a> section (which we will rename to \(q_{word}\) for clarity):</p>
+<p>We'll remain in the state \(q_{word}\) for any subsequent letters or digits, and transition to the state \(q_{word}^{(1)}\) if we encounter a whitespace character. From there, we'll transition into a final state \(q_{kw}\) or \(q_{id}\) depending on whether the word is a keyword or not.</p>
+<p>$$\begin{align*} \delta(q_{word}, a) &amp;= \begin{cases} q_{word} &amp; a \in \text{Letters} \ \bigcup \ \text{Digits} \\ q_{word}^{(1)} &amp; a \in \text{Whitespace} \end{cases} \\ \delta(q_{word}^{(1)}, b) &amp;= \begin{cases} q_{kw} &amp; ab \in \text{Keywords} \\ q_{id} &amp; \text{otherwise} \end{cases} \\
+\end{align*}$$</p>
+<p>Let's implement this in our Lexer! Here's an overview of the process:</p>
+<ol start="0">
+<li>Assumption: the current character is a letter or underscore (start of word)</li>
+<li>Keep track of the start index of the word</li>
+<li>Keep advancing until we reach a non-letter or non-digit character</li>
+<li>Check if the word is a keyword
+<ul>
+<li><strong>If so</strong>, return the keyword token</li>
+<li><strong>If not</strong>, return the identifier token</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-rust ignore">    fn lex_word(&amp;mut self) -&gt; Result&lt;Token&gt; {
+        // 1. Keep track of the start index of the word
+        let start = self.pos;
+
+        // 2. Keep advancing until we reach a non-letter or non-digit character
+        while let Some(ch) = self.peek() {
+            if ch.is_alphanumeric() || ch == '_' {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        let end = self.pos;
+
+        let value = &amp;self.src[start..end];
+
+        // Generate the respective token!
+        Ok(Token {
+            kind: TokenKind::keyword_from(value),
+            span: Span { start, end },
+        })
+    }</code></pre>
+<p>Again, we're using the <code>keyword_from</code> method on <code>TokenKind</code> to convert the word to a <code>TokenKind</code>, covered in the <a href="./tokens.html">Tokens</a> section.</p>
+<h3 id="transitioning-to-the-q_symbol-state-parsing-symbols"><a class="header" href="#transitioning-to-the-q_symbol-state-parsing-symbols">Transitioning to the \(q_{symbol}\) state (parsing symbols)</a></h3>
+<p>We leave the easiest for last. We'll simply transition to a final state when we encounter a symbol, since they're guaranteed to be single-characters and final states.</p>
+<p>Recall the transition function:</p>
+<p>$$\delta(q_{symbol}, a) = \begin{cases} q_{symbol} &amp; \text{if a is a symbol} \end{cases}$$</p>
+<p>We can quickly implement this in our Lexer; it will advance past the single-character and return the respective <code>Token</code>:</p>
+<pre><code class="language-rust ignore">    fn lex_single_char(&amp;mut self, kind: TokenKind) -&gt; Token {
+        let start = self.pos;
+        self.advance();
+        let end = self.pos;
+
+        Token {
+            kind,
+            span: Span { start, end },
+        }
+    }</code></pre>
+<h2 id="helper-methods"><a class="header" href="#helper-methods">Helper methods</a></h2>
+<p>If you noticed, the iterator returns <code>Option&lt;Result&lt;Token&gt;&gt;</code> which is pretty ugly albeit necessary if we want errors. This also means that we can't use the <code>collect</code> method on the iterator, which is a bit of a pain.</p>
+<p>It would help a lot to have a method that consumes an iterator, returning a stream of tokens and the errors encountered. Let's create a function <code>consume_lexer(lexer: Lever) -&gt; (Vec&lt;Token&gt;, Vec&lt;Error&gt;)</code> to do this.</p>
+<pre><code class="language-rust ignore">/// Consumes and partitions the Lexer iterator into 2 `vec`s for tokens and errors.
+pub fn consume_lexer(lexer: Lexer) -&gt; (Vec&lt;Token&gt;, Vec&lt;Error&gt;) {
+    let mut tokens = Vec::new();
+    let mut errors = Vec::new();
+    for token in lexer {
+        match token {
+            Ok(token) =&gt; tokens.push(token),
+            Err(err) =&gt; errors.push(err),
+        }
+    }
+    (tokens, errors)
+}</code></pre>
+<p>Very simple and straightforward and makes life a lot easier.</p>
+<h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html">Iterator trait</a>: The official documentation for the <code>Iterator</code> trait.</li>
+<li><a href="https://doc.rust-lang.org/rust-by-example/scope/lifetime.html">Lifetimes in Rust</a></li>
+<li><a href="./finite_automata.html">Finite Automata</a> in this guide!</li>
+<li><a href="https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356">Rust's Strings</a>: A comprehensive guide to Rust's strings.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="tokens.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="parsing_and_syntax_analysis.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="tokens.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="parsing_and_syntax_analysis.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

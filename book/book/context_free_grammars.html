@@ -1,0 +1,633 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Context-free Grammars - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html" class="active"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="context-free-grammars"><a class="header" href="#context-free-grammars">Context-free Grammars</a></h1>
+<p>Here, we'll discuss the concept of Context-free Grammars (CFGs) and their significance in compiler design. We'll also cover the formal definition of CFGs, metasyntax notations, and designing grammars.</p>
+<p>This section is important, as it provides the grammar our parser will be using.</p>
+<h2 id="introduction-to-context-free-grammars"><a class="header" href="#introduction-to-context-free-grammars">Introduction to Context-free Grammars</a></h2>
+<p>Context-free grammars (CFGs) are a formal way to describe the syntax of programming languages. They are used to define the structure of a language by specifying the rules for constructing valid programs. CFGs are an essential part of the parsing process in compilers, as they provide a systematic way to recognize and analyze the syntactic structure of source code.</p>
+<p>It's similar to how a natural language has a grammar, which defines the rules for constructing valid sentences. In the same way, a programming language has a grammar that defines the rules for constructing valid programs.</p>
+<p>You would identify that <code>He. had a hat</code> is not a valid sentence in English, and in the same way, <code>int x = 5 +;</code> is not a valid statement in C. CFGs help us define these rules and constraints.</p>
+<h3 id="what-do-you-mean-by-context-free"><a class="header" href="#what-do-you-mean-by-context-free">What do you mean by "context-free"?</a></h3>
+<p>In the context of grammars, "context-free" means that the production of a non-terminal symbol can occur without regard to the surrounding context. This property simplifies parsing, as it allows the recognition of language constructs solely based on the local structure, without considering the broader context in which they appear.</p>
+<p>This is a mouthful, but in simple terms, it means that the structure of a construct (i.e. a variable declaration) can be recognized based on its own local structure (i.e. only the variable declaration statement and its components), without needing to consider the broader context (i.e. the outer scope or function).</p>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<p>Consider a context-free grammar for simple arithemetic expressions (supporting addition).</p>
+<p>The product rule for addition may be defined as:</p>
+<pre><code>// `expr` is defined as `term` followed by `+` followed by `expr`
+expr -&gt; expr + term
+        | term          // or just `term`
+</code></pre>
+<p>The expression can be composed of another expression <em>inside</em> the <code>expr</code> rule, and the <code>expr</code> rule can be used to define the <code>term</code> rule. This is the "context-free" property of the grammar. We call this <strong>replacement</strong>.</p>
+<h2 id="formal-definition-of-context-free-grammars"><a class="header" href="#formal-definition-of-context-free-grammars">Formal Definition of Context-free Grammars</a></h2>
+<p>Indeed we need a formal definition of CFGs. It's a bit complex, but it's important to understand the formal definition of CFGs to understand how they are used in compiler design.</p>
+<p>CFGs are defined as a 4-tuple \(G = (N, \sum, P, S)\), where:</p>
+<ul>
+<li>\(N\) is a finite set of non-terminal symbols.
+<ul>
+<li>"non-terminal" symbols are symbols that can be replaced by a sequence of other symbols. Essentially, the parser can expand these symbols into other symbols.</li>
+<li>For example, the non-terminal symbol <code>expr</code> in the previous example can be expanded into <code>expr + term</code> or just <code>term</code>.</li>
+</ul>
+</li>
+<li>\(\sum\) is a finite set of terminal symbols, <strong>disjoint</strong> from \(N\).
+<ul>
+<li>"terminal" symbols are symbols that cannot be replaced by other symbols. They are the smallest units of the language.</li>
+<li>For example, the <code>+</code> symbol in the previous example is a terminal symbol.</li>
+</ul>
+</li>
+<li>\(P\) is a finite set of production rules, where each rule is of the form \(A \rightarrow \alpha\), where \(A \in N\) and \( \alpha \in (N \cup \sum)^* \) (a string of symbols from \((N \cup \sum)^*\)).
+<ul>
+<li>Each production rule defines how a non-terminal symbol can be replaced by a sequence of other symbols.</li>
+<li>For example, the production rule <code>expr -&gt; expr + term</code> in the previous example.</li>
+<li>\((N \cup \sum)^*\) denotes the set of all strings of symbols that can be formed from the union of \(N\) and \(\sum\).</li>
+</ul>
+</li>
+<li>\(S\) is the start symbol, which is a special non-terminal symbol that represents the entire language.
+<ul>
+<li>It is the symbol from which the derivation of the entire language begins.</li>
+</ul>
+</li>
+</ul>
+<p>Some important points to note:</p>
+<ul>
+<li>Non-terminal symbols represents syntactic categories in the language</li>
+<li>Terminal symbols represent the primary elements of the language
+<ul>
+<li>Identifiers, keywords, operators, etc.</li>
+</ul>
+</li>
+<li>Production rules define how non-terminal symbols can be replaced by sequences of other symbols</li>
+<li>The start symbol represents the entire language and is used as the initial symbol for the derivation process</li>
+</ul>
+<h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
+<p>Let's consider a simple CFG for a very basic arithmetic expression language. The language supports the basic operations of numbers.</p>
+<p>Given the CFG \(G = (N, \sum, P, S)\), where:</p>
+<ul>
+<li>\(N = {\text{Expr}, \text{Term}, \text{Factor}}\) are non-terminal symbols</li>
+<li>\(\sum = {+, *, (, ), \text{num}}\) are terminal symbols</li>
+<li>\(P\) is a set of production rules</li>
+<li>\(S = \text{Expr}\) is the start symbol</li>
+</ul>
+<p>The production rules for the CFG are:
+$$\begin{align*}
+\text{Expr} &amp;\rightarrow \text{Expr} + \text{Term} \\
+\text{Expr} &amp;\rightarrow \text{Expr} - \text{Term} \\
+\text{Expr} &amp;\rightarrow \text{Term} \\
+\text{Term} &amp;\rightarrow \text{Term} * \text{Factor} \\
+\text{Term} &amp;\rightarrow \text{Term} \div \text{Factor} \\
+\text{Term} &amp;\rightarrow \text{Factor} \\
+\text{Factor} &amp;\rightarrow (\text{Expr}) \\
+\text{Factor} &amp;\rightarrow \text{num}
+\end{align*}$$</p>
+<p>Let's parse the arithmetic expression \(3 \times (4 + 5)\) using \(G\). We'll do it step by step, with indentations to demonstrate the process.</p>
+<p>Let the token stream be <code>"3", "*", "(", "4", "+", "5", ")"</code>.</p>
+<ul>
+<li>\(\text{Expr} \Rightarrow \text{Term}\)
+<ul>
+<li>\(\text{Term} \Rightarrow \text{Term} * \text{Factor}\)
+<ul>
+<li>\(\text{Term} \Rightarrow \text{Factor}\)
+<ul>
+<li>\(\text{Factor} \Rightarrow \text{num}\) applies at \(3\)</li>
+</ul>
+</li>
+<li>\(\text{Factor} \Rightarrow (\text{Expr})\) applies at \((4 + 5)\)
+\(\text{Expr} \Rightarrow \text{Expr} + \text{Term}\)
+<ul>
+<li>\(\text{Expr} \Rightarrow \text{Term}\)
+<ul>
+<li>\(\text{Term} \Rightarrow \text{Factor}\)
+<ul>
+<li>\(\text{Factor} \Rightarrow \text{num}\) applies at \(4\)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>\(\text{Term} \Rightarrow \text{Factor}\)
+<ul>
+<li>\(\text{Factor} \Rightarrow \text{num}\) applies at \(5\)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>\(\text{Factor} \Rightarrow \text{num}\) applies at \(3\)</li>
+</ul>
+</li>
+</ul>
+<p>The derivation process starts with the start symbol \(\text{Expr}\) and proceeds by applying production rules to non-terminal symbols until only terminal symbols remain. This process is called <strong>derivation</strong>.</p>
+<p>This would yield the parse tree for the expression \(3 \times (4 + 5)\):</p>
+<pre><code>   *
+  / \
+ 3   +
+    / \
+   4   5
+</code></pre>
+<p>Notice how operator precedence is implicitly defined by the grammar. The <code>*</code> operator has a higher precedence than the <code>+</code> operator, and the parentheses are used to override the precedence.</p>
+<p>In compilers, you may either implement operator precedence within the grammar, or during parsing. We'll discuss this in the next section.</p>
+<h2 id="metasyntax-notations"><a class="header" href="#metasyntax-notations">Metasyntax Notations</a></h2>
+<p>Metasyntax notations are used to define the syntax of context-free grammars.</p>
+<h3 id="bnf"><a class="header" href="#bnf">BNF</a></h3>
+<p><a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form">Backus-Naur Form (BNF)</a> is a notation used to describe the syntax of programming languages (and other formal languages). It's commonly used to define CFGs, as it provides a concise and readable way to express the production rules of a grammar.</p>
+<p>In BNF notation, <strong>productions</strong> are used to define rules for constructing valid strings in a language. Each production consists of a <strong>non-terminal symbol</strong> on the left-hand side, followed by the <code>::=</code> symbol, and a sequence of <strong>terminal</strong> and/or <strong>non-terminal symbols</strong> on the right-hand side.</p>
+<p>For example, the BNF production rule for dates may look like this:</p>
+<pre><code class="language-bnf">&lt;date&gt;   ::= &lt;month&gt; "/"" &lt;day&gt;
+&lt;year&gt;   ::= &lt;digit&gt; &lt;digit&gt; &lt;digit&gt; &lt;digit&gt;
+&lt;month&gt;  ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+</code></pre>
+<ul>
+<li><code>&lt;non-terminal&gt;</code> represents a syntactic category or placeholder symbol</li>
+<li><code>::=</code> is the "is defined as" symbol, otherwise known as the "production" symbol</li>
+<li><code>&lt;terminal&gt;</code> represents a literal symbol or token, otherwise represented as <code>&lt;expression&gt;</code></li>
+</ul>
+<p>You may notice some semantic features, such as the pipe <code>|</code> denoting "or" and the double quotes <code>""</code> denoting a literal symbol. There are other notations, listed below:</p>
+<ul>
+<li><code>[]</code> denotes optionality
+<ul>
+<li>e.g. <code>&lt;date&gt; ::= &lt;month&gt; "/" &lt;day&gt; ["/" &lt;year&gt;]</code></li>
+</ul>
+</li>
+<li><code>()</code> denotes grouping
+<ul>
+<li>e.g. <code>&lt;expression&gt; ::= "(" &lt;expression&gt; ")" | &lt;term&gt;</code></li>
+</ul>
+</li>
+<li><code>*</code> denotes repetition (0 or more times)
+<ul>
+<li>e.g. <code>&lt;identifier&gt; ::= &lt;letter&gt; &lt;letter&gt;*</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="ebnf"><a class="header" href="#ebnf">EBNF</a></h3>
+<p><a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naurs Form (EBNF) grammar</a> is an extension of BNF that adds additional syntactic features to make the notation more expressive and concise. It's commonly used to define the syntax of programming languages and other formal languages.</p>
+<p>Here are some of the differences:</p>
+<ul>
+<li>EBNF denotes optional elements by <code>{}</code> instead of <code>[]</code></li>
+<li>EBNF extends repetition by introducing the use of <code>[]</code> to represent optional repetition, and <code>+</code> to represent one or more repetitions
+<ul>
+<li>e.g. <code>&lt;block&gt; ::= "{" &lt;statement&gt;* "}"</code></li>
+</ul>
+</li>
+</ul>
+<p>Typically, you'd use EBNF over BNF as it's more concise and expressive.</p>
+<p>As a side-note, you don't need to declare symbols with <code>&lt;</code> and <code>&gt;</code> in EBNF, but it's a common practice to do so.</p>
+<h2 id="designing-grammars"><a class="header" href="#designing-grammars">Designing Grammars</a></h2>
+   <!-- - Discuss strategies for designing grammars:
+     - Top-down vs. bottom-up approach
+     - Language features and constraints
+     - Hierarchical structure
+   - Provide guidelines for creating clear, unambiguous, and concise grammars. -->
+<p>There's different strategies for designing grammars for your language.</p>
+<h3 id="top-down-vs-bottom-up-approach"><a class="header" href="#top-down-vs-bottom-up-approach">Top-down vs. Bottom-up approach</a></h3>
+<p>The top-down approach starts with the start symbol \(S\) and tries to derive the input string by applying production rules in a leftmost derivation. In simple terms, it starts from the top of the parse tree (i.e. programs, functions) and works its way down.</p>
+<p>The bottom-up approach starts with the input string and tries to apply production rules in a rightmost derivation to reach the start symbol \(S\). In simple terms, it starts from the bottom of the parse tree (i.e. from tokens, expressions) and works its way up.</p>
+<h3 id="quick-guidelines"><a class="header" href="#quick-guidelines">Quick guidelines</a></h3>
+<p>When designing grammars, it's important to maximise the usage of the following:</p>
+<ul>
+<li><strong>Clarity</strong>: The grammar should be clear and easy to understand</li>
+<li><strong>Consistent naming</strong>: Use consistent naming conventions for non-terminal symbols</li>
+<li><strong>Unambiguous</strong>: The grammar should be unambiguous, meaning that each string in the language has exactly one valid parse tree</li>
+<li><strong>Conciseness</strong>: Do not make it overly complex. Keep it simple and concise</li>
+<li><strong>Modularize</strong>: Similar to programming, modularize your grammar. Break it down into smaller, more manageable parts</li>
+<li><strong>Document</strong>: Annotate with comments and documentation to explain the purpose of each production rule</li>
+</ul>
+<h2 id="lets-design-a-grammar"><a class="header" href="#lets-design-a-grammar">Let's design a grammar!</a></h2>
+<p>First let's refresh our memory of the language we're designing a grammar for. Read through <a href="./lexical_analysis.html#our-language">Lexical Analysis - Our Language</a> to understand the language we're designing a grammar for. Let's see the example code we wrote:</p>
+<pre><pre class="playground"><code class="language-rust">fn main() -&gt; int {
+    let x: int = 5;
+    let y: int = 3;
+    let z: int = x + y;
+    if (z &gt; 5) {            // Branching!
+        return z;           // Return z
+    } else {
+        return 0;           // Return 0
+    }
+}</code></pre></pre>
+<p>We can either work top-down, defining the program structure first, or bottom-up, defining the smallest elements first. We'll start with the top-down approach.</p>
+<p>We will also be using <strong>EBNF</strong> to define our grammar. Feel free to use a different notation and/or a bottom-up approach.</p>
+<h3 id="high-level-constructs"><a class="header" href="#high-level-constructs">High-level constructs</a></h3>
+<p>We can start by defining the high-level constructs of the language, such as the program, and the main components of the program. We would like it to be function-based (potentially including structs, enums, etc.).</p>
+<p>Let's consider a program to have multiple items, which may be a function, a struct, or an enum. For simplicity, we'll only consider functions for now.</p>
+<pre><code class="language-ebnf"># A program is a sequence of 0 or more items
+program           ::= item*
+
+# An item is a function declaration
+item              ::= function_decl
+</code></pre>
+<p>Now we can define the function declaration. Here's what the declaration looks like:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn function_name(param1: type1, param2: type2) -&gt; return_type { ... }
+<span class="boring">}</span></code></pre></pre>
+<p>It consists of the <code>fn</code> keyword, the function name, a list of parameters, and the return type. We'll also include the function body, which we call a "block".</p>
+<pre><code class="language-ebnf"># Create the function declaration. There are optional parameter lists too.
+function_decl     ::= "fn" IDENTIFIER "(" {parameter_list} ")" "-&gt;" type block
+
+# A parameter list is a sequence of 0 or more parameters
+parameter_list    ::= parameter ("," parameter)*
+
+# A parameter is an identifier followed by a type
+parameter         ::= IDENTIFIER ":" type
+</code></pre>
+<p>It's important to keep track of what you have not defined so far. Here's a list of things we haven't defined:</p>
+<ul>
+<li><code>type</code></li>
+<li><code>block</code></li>
+<li><code>IDENTIFIER</code></li>
+</ul>
+<h3 id="types"><a class="header" href="#types">Types</a></h3>
+<p>To get parameters and names out of the way, let's create production rules for types.</p>
+<p>We don't need to worry about defining the specifics of how an identifier is structured for example, since the lexer has already handled it for us. We can simply refer to it as <code>IDENTIFIER</code>.</p>
+<p>Types can be simple, like <code>int</code> and <code>bool</code>, which we call <strong>primitive types</strong>. They can also be more complex, like <code>struct</code> and <code>enum</code>, which we call <strong>compound types</strong>. For now, we'll only consider primitive types.</p>
+<pre><code class="language-ebnf">type              ::= primitive_type
+
+primitive_type    ::= "int" | "float" | "bool"
+</code></pre>
+<p><strong>Undefined</strong>:</p>
+<ul>
+<li><code>block</code></li>
+</ul>
+<h3 id="blocks-and-statements"><a class="header" href="#blocks-and-statements">Blocks and Statements</a></h3>
+<p>A block is a sequence of statements enclosed in curly braces. A statement can be an expression, a variable declaration, or a control flow statement.</p>
+<p>This is straightforward to define:</p>
+<pre><code class="language-ebnf">block             ::= "{" statement* "}"
+
+statement         ::= expression
+                    | variable_decl
+                    | flow_statement
+                    | return_statement
+</code></pre>
+<p>Expressions are a bit more complex, as they can be composed of other expressions. We'll define them later. Let's focus on variable declarations and control flow statements.</p>
+<p>A variable declaration must have a type and an expression. For safety (and to avoid null), we'll require an expression to be assigned to the variable.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let x: int = 5;
+<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-ebnf">variable_decl     ::= "let" IDENTIFIER ":" type "=" expression ";"
+</code></pre>
+<p>Control flow statements would consist of a few tokens: <code>if</code>, <code>else</code>, <code>return</code>. This is a bit tricky to design, as it can be recursive. Let's design it!</p>
+<p>Here's what a control flow statement looks like:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>if (condition) {
+    // if block
+} else if (condition) {
+    // else if block
+} else {
+    // else block
+}
+<span class="boring">}</span></code></pre></pre>
+<p>As you see, the <code>else</code> token is condition, as is the <code>else if</code> token. We can define the <code>else if</code> block as a control flow statement, and the <code>else</code> block as a block.</p>
+<pre><code class="language-ebnf">flow_statement    ::= "if" expression block {"else" block}
+</code></pre>
+<p>We don't know if <code>expression</code> would yield a boolean value, but we'll leave that to the semantic analysis phase of the compilation process. We only care about understanding the structure of the language.</p>
+<p>One big flaw with this production rule is that it doesn't support an arbritary number of <code>else if</code> statements. Let's modify it to support that.</p>
+<pre><code class="language-ebnf">flow_statement    ::= "if" expression block {"else" block | "else" flow_statement}
+</code></pre>
+<p>Now, the <code>else</code> token can be a block or another <code>if</code> statement. We can repeat it as many times as we want.</p>
+<p>In this book, we will opt for a simple <code>if</code>-<code>else</code> statement, but you can expand it to support more complex constructs.</p>
+<p>For return statements, it's simple:</p>
+<pre><code class="language-ebnf">return_statement  ::= "return" {expression}
+</code></pre>
+<p><strong>Undefined</strong>:</p>
+<ul>
+<li><code>expression</code></li>
+</ul>
+<h3 id="expressions"><a class="header" href="#expressions">Expressions</a></h3>
+<p>Here's the tough part. Expressions can be composed of other expressions, and can be quite complex. There's various things to support such as binary, unary, and ternary operations, function calls, and more. Similar to the previous expression example, we'll modularize this into smaller parts.</p>
+<p>An expression can be either:</p>
+<ul>
+<li>A primary expression (i.e. a literal, a variable, or a function call)</li>
+<li>A unary expression (i.e. a negation, a dereference)</li>
+<li>A binary expression (i.e. an addition, a multiplication)</li>
+</ul>
+<p>We call then "unary" and "binary" expressions because they operate on one or two operands, respectively. While we're at it, we'll also define primary expression and literals.</p>
+<pre><code class="language-ebnf">expression        ::= primary_expression
+                    | unary_expression
+                    | binary_expression
+
+primary_expression ::= literal
+                    | IDENTIFIER
+                    | "(" expression ")"
+                    | function_call
+
+literal           ::= INT | FLOAT | BOOLEAN
+</code></pre>
+<p>That leaves us with unary and binary expressions.</p>
+<p>Unary expressions consist of a unary operator and an expression. For example, <code>-4</code> or <code>!true</code>.</p>
+<pre><code class="language-ebnf">unary_expression  ::= "-" expression | "!" expression
+</code></pre>
+<p>Binary expressions consist of two expressions and a binary operator. For example, <code>4 + 5</code> or <code>true &amp;&amp; false</code>.</p>
+<pre><code class="language-ebnf">binary_expression ::= expression OPERATOR expression
+</code></pre>
+<p>And finally, our last undefined symbol is <code>function_call</code>. A function call consists of a function name and a list of arguments.</p>
+<pre><code class="language-ebnf">function_call     ::= IDENTIFIER "(" {expression} ")"
+</code></pre>
+<h3 id="end-result"><a class="header" href="#end-result">End result</a></h3>
+<p>And that's it! We've designed a grammar for our language. Here's the complete grammar so far:</p>
+<pre><code class="language-ebnf">program           ::= item*
+
+item              ::= function_decl
+                    # | struct_decl
+                    # | enum_decl
+                    # | impl_block
+
+function_decl     ::= "fn" IDENTIFIER "(" {parameter_list} ")" "-&gt;" type block
+
+parameter_list    ::= parameter ("," parameter)*
+
+parameter         ::= IDENTIFIER ":" type
+
+type              ::= primitive_type
+                    # | user_defined_type
+                    # | tuple_type
+                    # | reference_type
+                    # | array_type
+                    # | function_type
+
+primitive_type    ::= "int" | "float" | "bool"
+
+block             ::= "{" statement* "}"
+
+statement         ::= expression
+                    | variable_decl
+                    | flow_statement
+                    | return_statement
+
+
+expression        ::= primary_expression
+                    | unary_expression
+                    | binary_expression
+
+primary_expression ::= literal
+                    | IDENTIFIER
+                    | "(" expression ")"
+                    | function_call
+
+literal           ::= INT | FLOAT | BOOLEAN
+
+unary_expression  ::= "-" expression | "!" expression #| "&amp;" expression | "*" expression
+
+binary_expression ::= expression OPERATOR expression
+
+function_call     ::= IDENTIFIER "(" arguments ")"
+arguments         ::= expression ("," expression)* | ε
+
+variable_decl     ::= "let" IDENTIFIER ":" type "=" expression ";"
+
+flow_statement    ::= "if" expression block {"else" block}
+
+return_statement  ::= "return" {expression} ";"
+</code></pre>
+<p>This is a simple grammar that supports the basic constructs of our language. It's not complete, but it's a good starting point. We can always expand it to support more complex constructs and language features.</p>
+<h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
+<ul>
+<li><a href="https://www.ketteringscienceacademy.org/attachments/download.asp?file=1057&amp;type=pdf">BNF</a>: The dates example is from this resource.</li>
+<li><a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">EBNF</a>: Wikipedia's page on EBNF.</li>
+<li><a href="https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf">EBNF</a>: The official ISO standard for EBNF.</li>
+<li><a href="https://www.cs.uic.edu/~liub/teach/cs494/ebnf.pdf">EBNF</a>: A more concise and readable resource on EBNF.</li>
+<li><a href="https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars">Intro to Programming Languages/Grammars</a>: A Wikibooks page on grammars.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="abstract_syntax_trees.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="parsing_techniques.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="abstract_syntax_trees.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="parsing_techniques.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

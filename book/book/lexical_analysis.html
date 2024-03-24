@@ -1,0 +1,301 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lexical Analysis - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html" class="active"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="lexical-analysis"><a class="header" href="#lexical-analysis">Lexical Analysis</a></h1>
+<p>In this chapter, we'll cover the theory and implement a working lexer.</p>
+<h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
+<p>The primary purpose of lexical analysis is to simplify the subsequent phases of the compiler (the parser!) by providing an unstructured categorized representation of the source code as a stream of <strong>tokens</strong>. This can be done in a few ways.</p>
+<p>Regular expressions are patterns used to define the syntax of tokens in a programming language, used by tokenizers/lexers to recognize tokens. This guide will not use regular expressions. This is mainly because it's inefficient (lots of backtracking), is very deterministic, and is difficult to debug and control. I don't like regex either.</p>
+<p>Finite automata, including deterministic finite automata (DFAs) and non-deterministic finite automata (NFAs), serve as theoretical models for defining and implementing lexical analyzers.</p>
+<p>We will go into more detail in later sub-sections. For now, let's get started!</p>
+<h2 id="our-language"><a class="header" href="#our-language">Our Language</a></h2>
+<p>Before we start, we should get a clear idea of what our language should look like. We'll keep it simple, with the following features:</p>
+<ul>
+<li>Types (integer and boolean), i.e. <code>int</code>, <code>bool</code></li>
+<li>Variables, i.e. <code>let x: int = 5;</code></li>
+<li>Arithmetic operations (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>), i.e. <code>let x: int = 5 + 3;</code></li>
+<li>Parentheses, i.e. <code>let x: int = (5 + 3) * 2;</code></li>
+<li>If statements, i.e. <code>if (x &gt; 5) { ... } else { ... }</code></li>
+</ul>
+<p>We would like it to be <strong>strongly typed</strong>, so we can't do things like <code>let x: int = true;</code>. We'll also have a few reserved keywords, such as <code>let</code>, <code>if</code>, <code>else</code>, <code>int</code>, <code>bool</code>. Each function should have a return type, and we'll have a few built-in functions.</p>
+<p>Let's create a simple example code snippet for our language:</p>
+<pre><pre class="playground"><code class="language-rust">// Declare a function `main()`, which returns an integer (exit code)
+fn main() -&gt; int {
+    let x: int = 5;
+    let y: int = 3;
+    let z: int = x + y;
+    if (z &gt; 5) {            // Branching!
+        return z;           // Return z
+    } else {
+        return 0;           // Return 0
+    }
+}</code></pre></pre>
+<p>This is a simple program which declares two variables, adds them together, and returns the result if it's greater than 5. Otherwise, it returns 0. It follows a rust-like syntax, but it's not exactly Rust.</p>
+<p>Anyways, let's break it down into tokens:</p>
+<ol>
+<li><code>fn</code>: Keyword declaring a function</li>
+<li><code>main</code>: Identifier for the function</li>
+<li><code>(</code>: Parenthesis</li>
+<li><code>)</code>: Parenthesis</li>
+<li><code>-&gt;</code>: Arrow, indicating the return type</li>
+<li><code>int</code>: Keyword for the return type</li>
+<li><code>{</code>: Curly brace</li>
+<li><code>let</code>: Keyword for declaring a variable</li>
+<li><code>x</code>: Identifier for the variable</li>
+<li><code>:</code>: Colon, indicating the type</li>
+<li><code>int</code>: Keyword for the type</li>
+<li><code>=</code>: Assignment operator</li>
+<li><code>5</code>: Integer literal</li>
+<li><code>;</code>: Semicolon, indicating the end of the statement</li>
+</ol>
+<p>And so forth. This will help us understand how we can structure our tokens.</p>
+<h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
+<ul>
+<li><a href="https://github.com/leonardomso/awesome-fsm">Awesome FSM</a>: A curated list of awesome finite state machine libraries, software and resources.</li>
+<li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html">Iterator trait</a>: The official documentation for the <code>Iterator</code> trait.</li>
+<li><a href="https://doc.rust-lang.org/rust-by-example/scope/lifetime.html">Lifetimes in Rust</a></li>
+<li><a href="./finite_automata.html">Finite Automata</a> in this guide!</li>
+<li><a href="https://medium.com/@tarungudipalli/exploring-rusts-string-a-comprehensive-guide-with-examples-25f398ade356">Rust's Strings</a>: A comprehensive guide to Rust's strings.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="error_handling_with_codespan_reporting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="finite_automata.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="error_handling_with_codespan_reporting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="finite_automata.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

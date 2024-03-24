@@ -1,0 +1,443 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Implementing a Symbol Table - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html" class="active"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="implementing-a-symbol-table"><a class="header" href="#implementing-a-symbol-table">Implementing a Symbol Table</a></h1>
+<p>Here, we'll implement a Symbol Table for our language.</p>
+<h2 id="symbol-entries"><a class="header" href="#symbol-entries">Symbol Entries</a></h2>
+<p>First, let's determine what exactly the entries will be in our symbol table. Since we'll implement type-checking and such, we'll need to store more than just the name of the symbol. Here's a list of what we'll store in each entry:</p>
+<ul>
+<li><code>name</code>: The name of the symbol.
+<ul>
+<li>This is stored in the symbol table anyways</li>
+</ul>
+</li>
+<li><code>span</code>: The span of the symbol in the source code.</li>
+<li><code>type</code>: The type of the symbol.</li>
+</ul>
+<p>However, we do not want to allow people to be able to call variables as if they were a variable. Instead, we'll introduce <strong>two</strong> hashtables, as well as two symbol entry types: one for variables, one for functions.</p>
+<p>A Variable Symbol would contain the type of the variable, as well as the span (as usual). Let's quickly define <code>VarSymbol</code>:</p>
+<p>In <code>src/semantic_analysis/symbol_table.rs</code>:</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+use crate::token::Span;
+
+/// Represents a variable symbol
+#[derive(Debug)]
+pub struct VarSymbol {
+    /// The type of the variable
+    pub ty: Type,
+    /// Full span
+    pub span: Span,
+}</code></pre>
+<p>Function symbols are a little more complex. We'll need to store the return type and span, as well as the parameters. Let's define <code>FuncSymbol</code>:</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+use crate::token::Span;
+
+/// Represents a function symbol
+#[derive(Debug)]
+pub struct FuncSymbol {
+    /// The return type of the function
+    pub return_ty: Type,
+    /// The parameters of the function
+    pub params: Vec&lt;(String, Type)&gt;,
+    /// Full span
+    pub span: Span,
+}</code></pre>
+<p>There is a little problem; the <code>span</code> field would represent the entire function declaration (including the block!). We would rather have different spans for each part of the function. For now, let's add 2 more for the identifier, and the signature (ident, params, types):</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+use crate::token::Span;
+
+/// Represents a function symbol
+#[derive(Debug)]
+pub struct FuncSymbol {
+    /// Parameter types
+    pub params: Vec&lt;Type&gt;,
+    /// Return type
+    pub ret_ty: Type,
+    /// Full
+    pub span: Span,
+    /// Span of the identifier
+    pub ident_span: Span,
+    /// Signature span
+    pub sig_span: Span,
+}</code></pre>
+<h2 id="symbol-table"><a class="header" href="#symbol-table">Symbol Table</a></h2>
+<p>Now that we have the symbol entries, we can store the symbols in a symbol table. We'll use two hashmaps: one for variables, one for functions. We'll also use <strong>nested scopes</strong>, so we'll keep a reference (on the heap) to the parent scope, if any.</p>
+<p>Let's define the <code>SymbolTable</code> struct:</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+use crate::token::Span;
+use std::collections::HashMap;
+
+/// Represents a symbol table
+#[derive(Debug)]
+pub struct SymbolTable&lt;'a&gt; {
+    /// Table for variables
+    pub variables: HashMap&lt;Ident, VarSymbol&gt;,
+    /// Table for functions
+    pub functions: HashMap&lt;Ident, FuncSymbol&gt;,
+    /// Parent
+    pub parent: Option&lt;Box&lt;&amp;'a SymbolTable&lt;'a&gt;&gt;&gt;,
+}</code></pre>
+<p>Great! Let's implement some methods for the <code>struct</code> now. We'll start with methods to add and get symbols.</p>
+<h3 id="adding-and-retrieving-symbols"><a class="header" href="#adding-and-retrieving-symbols">Adding and Retrieving Symbols</a></h3>
+<p>Before we do this, let's prime on the process of adding a variable symbol to the table:</p>
+<ol>
+<li>Retrieve a reference to the variable declaration AST node</li>
+<li>Check if the variable is already declared in the current scope
+<ul>
+<li>If it is, return an error and terminate</li>
+</ul>
+</li>
+<li>Add the variable to the table
+<ol>
+<li>Create a variable symbol from the variable declaration</li>
+<li>Insert the symbol into the table</li>
+</ol>
+</li>
+</ol>
+<p>For variable retrival, the process is less straightforward:</p>
+<ol>
+<li>Retrieve the identifier of the variable</li>
+<li>Search for the variable in the current scope
+<ul>
+<li>If it is found, return the symbol and terminate</li>
+</ul>
+</li>
+<li>If the variable is not found, search in the parent scope
+<ul>
+<li>If it is found, return the symbol and terminate</li>
+</ul>
+</li>
+<li>If the variable is not found in the current or parent scope, return <strong>nothing</strong></li>
+</ol>
+<p>We want to avoid returning an error if the variable isn't found; there may be contexts where it's not required to have a variable declared.</p>
+<pre><code class="language-rust ignore">use anyhow::{anyhow, Result};
+use crate::errors::SemanticError;
+
+impl&lt;'a&gt; SymbolTable&lt;'a&gt; {
+    /// Inserts a variable symbol into the table
+    pub fn add_var(&amp;mut self, var: &amp;VariableDecl) -&gt; Result&lt;()&gt; {
+        if let Some(existing) = self.variables.get(&amp;var.ident) {
+            return Err(anyhow!(SemanticError::VariableAlreadyDeclared(
+                var.ident.clone(),
+                var.span.clone(),
+                existing.span.clone()
+            )));
+        } else {
+            self.variables.insert(
+                var.ident.clone(),
+                VarSymbol {
+                    ty: var.ty.clone(),
+                    span: var.span.clone(),
+                },
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Looks up a variable symbol in the table
+    pub fn get_var(&amp;self, name: &amp;Ident) -&gt; Option&lt;&amp;VarSymbol&gt; {
+        match self.variables.get(name) {
+            Some(v) =&gt; Some(v),
+            None =&gt; match &amp;self.parent {
+                Some(p) =&gt; p.get_var(name),
+                None =&gt; None,
+            },
+        }
+    }
+}</code></pre>
+<blockquote>
+<p>Make sure you make implementations for <code>.span()</code> for your AST nodes!</p>
+</blockquote>
+<h3 id="adding-and-retrieving-functions"><a class="header" href="#adding-and-retrieving-functions">Adding and Retrieving Functions</a></h3>
+<p>Functions follow an identical to variables, although you may want to handle overloading functions here. I don't like that concept, so we won't be implementing that here.</p>
+<pre><code class="language-rust ignore">impl&lt;'a&gt; SymbolTable&lt;'a&gt; {
+    /// Inserts a function symbol into the table
+    pub fn add_fn(&amp;mut self, func: &amp;FunctionDecl) -&gt; Result&lt;()&gt; {
+        let params = func.parameters.iter().map(|p| p.ty.clone()).collect();
+        let ret_ty = func.ty.clone();
+
+        if let Some(existing) = self.functions.get(&amp;func.ident) {
+            warn!("Function already declared: {}", func.ident.ident);
+            return Err(anyhow!(SemanticError::FunctionAlreadyDeclared(
+                func.ident.clone(),
+                func.span.clone(),
+                existing.span.clone()
+            )));
+        } else {
+            debug!("Adding function: {}", func.ident.ident);
+            self.functions.insert(
+                func.ident.clone(),
+                FuncSymbol {
+                    params,
+                    ret_ty,
+                    span: func.span.clone(),
+                    ident_span: func.ident.span.clone(),
+                    sig_span: Span::combine(&amp;func.ident.span, &amp;func.ty.span()),
+                },
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Looks up a function symbol in the table
+    pub fn get_fn(&amp;self, name: &amp;Ident) -&gt; Option&lt;&amp;FuncSymbol&gt; {
+        match self.functions.get(name) {
+            Some(f) =&gt; Some(f),
+            None =&gt; match &amp;self.parent {
+                Some(p) =&gt; p.get_fn(name),
+                None =&gt; None,
+            },
+        }
+    }
+}</code></pre>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Now we have a symbol table to represent each scope, and the symbols within the scopes. We can now use this symbol table to implement type-checking and other semantic analysis.</p>
+<h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/boxed/struct.Box.html">Box</a></li>
+<li><a href="https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/the-stack-and-the-heap.html">Memory Stack and Heap</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="type_checking.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="implementing_a_semantic_analyzer.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="type_checking.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="implementing_a_semantic_analyzer.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

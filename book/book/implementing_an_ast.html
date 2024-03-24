@@ -1,0 +1,620 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Implementing an AST - Writing a Compiler in Rust from scratch</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded "><a href="error_handling.html"><strong aria-hidden="true">3.</strong> Error Handling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="error_handling_with_ariadne.html"><strong aria-hidden="true">3.1.</strong> Error Handling with ariadne</a></li><li class="chapter-item expanded "><a href="error_handling_with_codespan_reporting.html"><strong aria-hidden="true">3.2.</strong> Error Handling with codespan-reporting</a></li></ol></li><li class="chapter-item expanded "><a href="lexical_analysis.html"><strong aria-hidden="true">4.</strong> Lexical Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="finite_automata.html"><strong aria-hidden="true">4.1.</strong> Finite Automata</a></li><li class="chapter-item expanded "><a href="tokens.html"><strong aria-hidden="true">4.2.</strong> Tokens</a></li><li class="chapter-item expanded "><a href="lexer.html"><strong aria-hidden="true">4.3.</strong> Lexer</a></li></ol></li><li class="chapter-item expanded "><a href="parsing_and_syntax_analysis.html"><strong aria-hidden="true">5.</strong> Parsing and Syntax Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="abstract_syntax_trees.html"><strong aria-hidden="true">5.1.</strong> Abstract Syntax Trees</a></li><li class="chapter-item expanded "><a href="context_free_grammars.html"><strong aria-hidden="true">5.2.</strong> Context-free Grammars</a></li><li class="chapter-item expanded "><a href="parsing_techniques.html"><strong aria-hidden="true">5.3.</strong> Parsing Techniques</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="recursive_descent_parsing.html"><strong aria-hidden="true">5.3.1.</strong> Recursive Descent Parsing</a></li><li class="chapter-item expanded "><a href="ll_k_parsing.html"><strong aria-hidden="true">5.3.2.</strong> LL(k) Parsing</a></li><li class="chapter-item expanded "><a href="lr_parsing.html"><strong aria-hidden="true">5.3.3.</strong> LR Parsing</a></li></ol></li><li class="chapter-item expanded "><a href="implementing_an_ast.html" class="active"><strong aria-hidden="true">5.4.</strong> Implementing an AST</a></li><li class="chapter-item expanded "><a href="implementing_a_parser.html"><strong aria-hidden="true">5.5.</strong> Implementing a Parser</a></li></ol></li><li class="chapter-item expanded "><a href="semantic_analysis.html"><strong aria-hidden="true">6.</strong> Semantic Analysis</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="symbol_tables.html"><strong aria-hidden="true">6.1.</strong> Symbol Tables</a></li><li class="chapter-item expanded "><a href="type_checking.html"><strong aria-hidden="true">6.2.</strong> Type Checking</a></li><li class="chapter-item expanded "><a href="implementing_a_symbol_table.html"><strong aria-hidden="true">6.3.</strong> Implementing a Symbol Table</a></li><li class="chapter-item expanded "><a href="implementing_a_semantic_analyzer.html"><strong aria-hidden="true">6.4.</strong> Implementing a Semantic Analyzer</a></li></ol></li><li class="chapter-item expanded "><a href="intermediate_representation.html"><strong aria-hidden="true">7.</strong> Intermediate Representation</a></li><li class="chapter-item expanded "><a href="code_generation.html"><strong aria-hidden="true">8.</strong> Code Generation</a></li><li class="chapter-item expanded "><a href="postlude.html"><strong aria-hidden="true">9.</strong> Postlude</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Writing a Compiler in Rust from scratch</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="implementing-an-ast"><a class="header" href="#implementing-an-ast">Implementing an AST</a></h1>
+<p>Now that we have:</p>
+<ul>
+<li>A Lexer</li>
+<li>A way to represent tokens</li>
+<li>A way to represent errors</li>
+</ul>
+<p>We now need to implement an Abstract Syntax Tree from the grammar we developed, and derive a parser from it. We'll add some more methods later on during parsing, since the best explanatory example is a working example.</p>
+<h2 id="designing-the-ast"><a class="header" href="#designing-the-ast">Designing the AST</a></h2>
+<p>Recall the <a href="./context_free_grammars.html#lets-design-a-grammar">grammar we designed</a> for our language. We will use this grammar to design our AST.</p>
+<details>
+<summary><strong>View the grammar</strong></summary>
+<pre><code class="language-ebnf">program           ::= item*
+
+item              ::= function_decl
+                    # | struct_decl
+                    # | enum_decl
+                    # | impl_block
+
+function_decl     ::= "fn" IDENTIFIER "(" {parameter_list} ")" "-&gt;" type block
+
+parameter_list    ::= parameter ("," parameter)*
+
+parameter         ::= IDENTIFIER ":" type
+
+type              ::= primitive_type
+                    # | user_defined_type
+                    # | tuple_type
+                    # | reference_type
+                    # | array_type
+                    # | function_type
+
+primitive_type    ::= "int" | "float" | "bool"
+
+block             ::= "{" statement* "}"
+
+statement         ::= expression
+                    | variable_decl ";"
+                    | flow_statement ";"
+
+
+expression        ::= primary_expression
+                    | unary_expression
+                    | binary_expression
+
+primary_expression ::= literal
+                    | IDENTIFIER
+                    | "(" expression ")"
+                    | function_call
+
+literal           ::= INT | FLOAT | BOOLEAN
+
+unary_expression  ::= "-" expression | "!" expression #| "&amp;" expression | "*" expression
+
+binary_expression ::= expression OPERATOR expression
+
+function_call     ::= IDENTIFIER "(" arguments ")"
+arguments         ::= expression ("," expression)* | ε
+
+variable_decl     ::= "let" IDENTIFIER ":" type "=" expression
+
+flow_statement    ::= "if" expression block {"else" block}
+                    | "return" expression?
+</code></pre>
+</details>
+<p>We can simply go one-by-one and design the AST for each non-terminal in the grammar.</p>
+<h3 id="file-structure"><a class="header" href="#file-structure">File Structure</a></h3>
+<p>We currently have a <code>src</code> directory with the following structure:</p>
+<pre><code>compiler/
+|-- Cargo.toml
+|-- grammar.bnf
++-- src
+  +-- ast           // An empty AST folder
+  |-- errors.rs
+  |-- lexer.rs
+  |-- main.rs
+  |-- parser.rs
+  |-- token.rs
++-- tests
+</code></pre>
+<p>It would be significantly beneficial to have a separate file for each non-terminal in the grammar. We can also group them into little categories, which we'll do here:</p>
+<p>In <code>src/ast</code>, we'll have:</p>
+<ol>
+<li><code>core.rs</code> for the core items in the language (<code>Program</code>, etc.)</li>
+<li><code>expr.rs</code> for the expressions</li>
+<li><code>flow.rs</code> for the flow statements</li>
+<li><code>functions.rs</code> for the different function non-terminals</li>
+<li><code>nary_expr.rs</code> representing any -ary expressions (unary, binary, etc.)</li>
+<li><code>ops.rs</code> for the operators</li>
+<li><code>prim_expr.rs</code> for the primary expressions</li>
+<li><code>types.rs</code> for all datatypes, including primitive</li>
+</ol>
+<p>We'll also have a <code>mod.rs</code> file in the <code>ast</code> folder to re-export everything, which will look like this simply:</p>
+<pre><code class="language-rust ignore">//! Declares the AST for the language.
+//! 
+//! Abstract Syntax Trees (ASTs) represent the structure of the language,
+//! generated by the parser. Raw parser ASTs should be optimized further.
+//! 
+//! We can use this to generate the IR (Intermediate Representation) for the
+//! language, which is then used to generate the final machine code.
+
+// Load all the modules
+mod core;
+mod ops;
+mod types;
+mod prim_expr;
+mod nary_expr;
+mod expr;
+mod functions;
+mod flow;
+mod utils;
+
+// Re-export everything
+pub use self::core::*;
+pub use self::ops::*;
+pub use self::types::*;
+pub use self::prim_expr::*;
+pub use self::nary_expr::*;
+pub use self::expr::*;
+pub use self::functions::*;
+pub use self::flow::*;
+pub use self::utils::*;</code></pre>
+<p>This is a little bit tedious, but let's get started.</p>
+<p>It's important to note that since parts of the AST may refer to sister-modules, we'll add <code>use crate::ast::*;</code> to the top of each file.</p>
+<h3 id="core-items"><a class="header" href="#core-items">Core Items</a></h3>
+<p>This will consist of the <code>Program</code> and <code>Item</code> non-terminals. Additionally, we'll also wrap the entire program into an <code>AST</code> struct, which will also contain the <code>file_id</code>:</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub struct AST {
+    pub program: Program,
+    pub file_id: usize,
+}
+
+#[derive(Debug)]
+pub struct Program {
+    pub items: Vec&lt;Item&gt;,
+}
+
+#[derive(Debug)]
+pub enum Item {
+    FunctionDecl(FunctionDecl),
+}</code></pre>
+<h3 id="expressions"><a class="header" href="#expressions">Expressions</a></h3>
+<p>Referring to our grammar, expressions are either:</p>
+<ul>
+<li>Primary expressions</li>
+<li>Unary expressions</li>
+<li>Binary expressions</li>
+</ul>
+<p>Blocks are also expressions, so we'll consider them too.</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub enum Expression {
+    Primary(PrimaryExpression),
+    Unary(UnaryExpression),
+    Binary(BinaryExpression),
+}
+
+#[derive(Debug)]
+pub struct Block {
+    pub statements: Vec&lt;Statement&gt;,
+}</code></pre>
+<h3 id="flow-statements"><a class="header" href="#flow-statements">Flow Statements</a></h3>
+<p>Flow statements consist of <code>if</code>, <code>return</code>, etc. but we will include regular statements within this too.</p>
+<p>Referring to our grammar, statements are either:</p>
+<ul>
+<li>Expressions</li>
+<li>Variable declarations</li>
+<li>Flow statements</li>
+<li>Return statements</li>
+</ul>
+<p>We will not include the nodes for expressions here.</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub enum Statement {
+    Expression(Box&lt;Expression&gt;),
+    VariableDecl(VariableDecl),
+    Flow(FlowStatement),
+    Return(Option&lt;Box&lt;Expression&gt;&gt;),
+}
+
+#[derive(Debug)]
+pub struct VariableDecl {
+    pub ident: Ident,
+    pub ty: Type,
+    pub expression: Expression,
+}
+
+#[derive(Debug)]
+pub struct FlowStatement {
+    pub condition: Expression,
+    pub if_block: Block,
+    pub else_block: Option&lt;Block&gt;,
+}</code></pre>
+<h3 id="functions"><a class="header" href="#functions">Functions</a></h3>
+<p>Next, we simply need to determine how a <code>FunctionDecl</code> node will look like. Referring to our grammar, we can abstract away parentheses, commas, etc. and determine that the information a function contains is:</p>
+<ol>
+<li>An identifier</li>
+<li>A list of parameters</li>
+<li>A return type</li>
+<li>A block (the function body)</li>
+</ol>
+<p>We should create nodes for parameters too, as they are a part of the function declaration.</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub struct FunctionDecl {
+    pub ident: Ident,
+    pub parameters: Vec&lt;Parameter&gt;,
+    pub ty: Type,
+    pub block: Block,
+}
+
+#[derive(Debug)]
+pub struct Parameter {
+    pub ident: Ident,
+    pub ty: Type,
+}</code></pre>
+<h3 id="n-ary-expressions"><a class="header" href="#n-ary-expressions">N-ary Expressions</a></h3>
+<p>To support unary and binary operations, we'll add these nodes here.</p>
+<p>Unary expressions will simply either be a <code>Negation</code> unary operation, or a <code>Not</code> unary operation.</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub enum UnaryExpression {
+    Negation(Box&lt;Expression&gt;),
+    Not(Box&lt;Expression&gt;),
+}
+
+#[derive(Debug)]
+pub struct BinaryExpression {
+    pub lhs: Box&lt;Expression&gt;,
+    pub op: BinaryOperator,
+    pub rhs: Box&lt;Expression&gt;,
+}</code></pre>
+<h3 id="operators"><a class="header" href="#operators">Operators</a></h3>
+<p>This part will be slightly longer, as we need to determine the <strong>precedence</strong> of each operator.</p>
+<p>First, let's define the <code>enum</code>:</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub enum BinaryOperator {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulus,
+    Equal,
+    NotEqual,
+    LessThan,
+    GreaterThan,
+    LessThanOrEqual,
+    GreaterThanOrEqual,
+    And,
+    Or,
+}
+
+pub enum UnaryOperator {
+    Negation,
+    Not,
+}</code></pre>
+<p><strong>Operator Precedence</strong> is a critical part of parsing expressions; they define the order in which operators are evaluated. For example, <code>*</code> has a higher precedence than <code>+</code>, so <code>2 + 3 * 4</code> should be parsed as <code>2 + (3 * 4)</code>. You may know this as BIDMAS, BODMAS, or PEMDAS.</p>
+<p>First, we know that the highest precedence operator (here, atleast) are the multiplication, division, and modulus operators. Below them are addition and subtraction.</p>
+<p>Then there's the relational comparison operators; we would like them to be lower than the arithmetic operations so we can perform evaluations like <code>3 + 4 &lt; 5 + 6</code> as <code>(3 + 4) &lt; (5 + 6)</code>.</p>
+<p>Equality comparison operators (<code>==</code>, <code>!=</code>) should have lower precedence than relational operators.</p>
+<p>Finally, let's look at the logical operators <code>&amp;&amp;</code> and <code>||</code>. We would like them to have the lowest precedence, <strong>but</strong> there is a difference. Consider <code>true || false &amp;&amp; true</code>. We would like this to be parsed as <code>true || (false &amp;&amp; true)</code>. Thus, <code>&amp;&amp;</code> should have a higher precedence than <code>||</code>.</p>
+<p>Let's start from the bottom up and list the operators in terms of order:</p>
+<ol>
+<li><code>||</code>: <code>Or</code></li>
+<li><code>&amp;&amp;</code>: <code>And</code></li>
+<li><code>==</code>, <code>!=</code>: Equality Comparison Operators</li>
+<li><code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>: Relational Comparison Operators</li>
+<li><code>+</code>, <code>-</code>: Addition and Subtraction</li>
+<li><code>*</code>, <code>/</code>, <code>%</code>: Multiplication, Division, and Modulus</li>
+</ol>
+<p>See the numbers on the list? That would be the precedence value of the operators. We can add this to the <code>BinaryOperator</code> enum:</p>
+<pre><code class="language-rust ignore">impl BinaryOperator {
+    /// Get the precedence of the operator
+    pub fn precedence(&amp;self) -&gt; u8 {
+        match self {
+            BinaryOperator::Or =&gt; 1,
+            BinaryOperator::And =&gt; 2,
+            BinaryOperator::Equal | BinaryOperator::NotEqual =&gt; 3,
+            BinaryOperator::LessThan
+            | BinaryOperator::GreaterThan
+            | BinaryOperator::LessThanOrEqual
+            | BinaryOperator::GreaterThanOrEqual =&gt; 4,
+            BinaryOperator::Add | BinaryOperator::Subtract =&gt; 5,
+            BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulus =&gt; 6,
+        }
+    }
+}</code></pre>
+<h3 id="primary-expressions"><a class="header" href="#primary-expressions">Primary Expressions</a></h3>
+<p>Primary expressions, as referred to in our grammar, are:</p>
+<ul>
+<li>Literals</li>
+<li>Identifiers</li>
+<li>Parenthesized expressions</li>
+<li>Function calls</li>
+</ul>
+<p>Keep in mind we do want to minimize the number of AST Nodes we create, so we will skip the creation of paranthesized expressions and function calls. However, we would like to explicitly represent literals and identifiers.</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub enum PrimaryExpression {
+    Literal(Literal),
+    Ident(Ident),
+    Parenthesized(Box&lt;Expression&gt;),
+    FunctionCall(Ident, Vec&lt;Expression&gt;),
+}
+
+#[derive(Debug)]
+pub struct Ident {
+    pub ident: String,
+}
+
+#[derive(Debug)]
+pub enum Literal {
+    Int(i32),
+    Float(f32),
+    Bool(bool),
+}</code></pre>
+<h3 id="types"><a class="header" href="#types">Types</a></h3>
+<p>Finally, we need to represent the different types in our language. We'll start with the primitive types.</p>
+<pre><code class="language-rust ignore">use crate::ast::*;
+
+#[derive(Debug)]
+pub enum Type {
+    Primitive(PrimitiveType),
+}
+
+#[derive(Debug)]
+pub enum PrimitiveType {
+    Int,
+    Float,
+    Bool,
+}</code></pre>
+<h2 id="optional-helpers"><a class="header" href="#optional-helpers">Optional helpers</a></h2>
+<p>We can add some helpful methods to display the tree. One option is to implement <a href="https://doc.rust-lang.org/std/fmt/trait.Display.html"><code>Display</code> trait</a>, although I prefer using a custom method for this to keep track of depth or indentation.</p>
+<p>Let's create <code>ast/utils.rs</code>:</p>
+<pre><code class="language-rust ignore">pub trait PrettyPrint {
+    fn pretty_print(&amp;self, indent: usize) -&gt; String;
+}</code></pre>
+<p>This is a trait we'll implement for each node in the AST, which takes in an <code>indent</code> parameter to determine how much to indent the output.</p>
+<p>Unfortunately I will not cover each node, but we'll cover the <code>FunctionDecl</code> node as an example:</p>
+<pre><code class="language-rust ignore">impl PrettyPrint for FunctionDecl {
+    // format: FuncDecl ident(parameters) -&gt; ty { block }
+    fn pretty_print(&amp;self, indent: usize) -&gt; String {
+        let mut s = format!(
+            "{:indent$}FuncDecl {}({}) -&gt; {} {{\n",
+            "",
+            self.ident.ident,
+            self.parameters
+                .iter()
+                .map(|p| p.pretty_print(indent))
+                .collect::&lt;Vec&lt;String&gt;&gt;()
+                .join(", "),
+            self.ty.pretty_print(indent),
+            indent = indent * 4
+        );
+        s.push_str(&amp;self.block.pretty_print(indent + 1));
+        s.push_str(&amp;format!("{:indent$}}}\n", "", indent = indent * 4));
+        s
+    }
+}</code></pre>
+<p>This will allow us to call <code>pretty_print</code> on any node in the AST, and it will return a string representation of the node.</p>
+<h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Operator-precedence_parser">Operator Precedence</a></li>
+<li><a href="https://doc.rust-lang.org/std/boxed/struct.Box.html">Box<T></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.Display.html"><code>Display</code> trait</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="lr_parsing.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="implementing_a_parser.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="lr_parsing.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="implementing_a_parser.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
